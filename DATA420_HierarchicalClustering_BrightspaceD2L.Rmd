@@ -1,0 +1,100 @@
+---
+title: "DATA420 Hierarchical Clustering"
+author: "Jason Pemberton"
+date: "2023-11-19"
+output: html_document
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+**Dendrogram Structure:**
+
+Imagine a hierarchical cluster dendrogram as a family tree, but instead
+of people, we have groups of customers. At the very bottom, each
+customer is like an individual leaf. As we move up, the leaves combine
+into branches, and branches merge into larger branches, forming a
+tree-like structure.
+
+**Height of Merging:**
+
+The height at which branches merge represents how similar or different
+groups of customers are. Lower branches merging means those customers
+are quite similar, while higher mergers indicate broader similarities
+between larger groups.
+
+**Cutting the Tree:**
+
+To simplify things, we can 'cut' the tree at a certain height to create
+distinct groups or clusters. Like deciding at what level we want to draw
+a line across the tree to form specific customer groups.
+
+**Clusters:**
+
+Once we've cut the tree, each resulting cluster is a group of customers
+who share common traits. These traits might be their spending habits,
+income levels, or other characteristics we're studying.
+
+**Interpreting Colors:**
+
+The colors on the branches help us visually identify which customers are
+more closely related. If two customers are in the same color group, they
+are more similar to each other compared to customers in different color
+groups.
+
+**Overall Insight:**
+
+This dendrogram helps understand the natural structure within our
+customer data. It reveals groups of customers who are similar, and by
+studying these groups, we can gain insights into patterns or trends that
+may not have been obvious before.
+
+Unsupervised machine learning ***hclust*** function is part of base R so
+no additional libraries need to be installed
+
+Create a dataframe that contains two columns of customer information. The first column contains randomly generated Annual Income data while the second column contains randomly generated number of purchases for each customer.
+
+```{r create dataframe}
+# Create a dataset named customers_data
+set.seed(123) # allows you to repeat your results when using random number generators
+
+customers_data <- data.frame(
+  AnnualIncome = rnorm(50, mean = 50000, sd = 10000),
+  NumPurchases = rnorm(50, mean = 20, sd = 5)
+)
+```
+
+Hierarchical clustering will look at the annual income and number of purchases for each of the 50 customers to identify which customers are most closely related. It will then build a dendrogram (tree) showing the relationships. Customers at the bottom with shorter branches are more closely related. If we specify a "k" value, we can overlay color rectangles to highlight which branches share the strongest relationship at that level.
+
+```{r Hierarchical Clustering}
+# Perform hierarchical clustering
+dist_matrix <- dist(customers_data) # Compute distance matrix
+hclust_result <- hclust(dist_matrix) # Perform hierarchical clustering
+
+# Plot the dendrogram
+plot(hclust_result, main = "Hierarchical Clustering Dendrogram", xlab = "Customers")
+# Add color to the branches
+rect.hclust(hclust_result, k=4, border=2:4)
+```
+
+Suppose we wish to identify a group of customers with a specific level of relationship strength. We can cut the tree at a specified k level and plot the results on a scatterplot to show the clustering similar to a kmeans model.
+
+Cut the tree at k=4
+```{r Tree cutting}
+# Cut the dendrogram to get clusters
+clusters <- cutree(hclust_result, k=4)
+```
+
+Visualize the results in a scatterplot
+```{r Visualize the clusters}
+# Visualize the clusters in the original dataset
+plot(customers_data, col=clusters, pch=19, main="Hierarchical Clustering", xlab="Annual Income", ylab="Number of Purchases")
+
+# Add cluster centroids to the plot
+centers <- aggregate(customers_data, by=list(clusters), mean)
+points(centers[, -1], col=1:3, pch=3, cex=2)
+```

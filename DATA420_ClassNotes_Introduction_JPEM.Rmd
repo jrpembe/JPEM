@@ -1,0 +1,345 @@
+---
+title: "DATA 420 Course Notes - Introduction to R Part I"
+author: "Jason Pemberton"
+date: "2023-09-18"
+output: html_document
+---
+
+### **Introduction - Variables, Vectors, Matrices and Data Loading**
+
+R users have been creating libraries for years - there are literally thousands of libraries that contain packages of functions to make life easier for you as you code in R. I recommend you search Google for "top ten R libraries" to see what most people are using.
+
+[R Studio Package Cheat Sheets](https://posit.co/resources/cheatsheets/)
+
+The process is quite simple - click on ***Tools \> Install Packages*** to install the packages you will need. This process only has to be done once. When you being writing R Scripts or R Markdown files, you will need to load libraries at the beginning for each file you create. You do so by writing:
+
+\> library(package_name)
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Load the necessary libraries at the beginning of your Markdown file
+library(tidyverse)
+```
+
+------------------------------------------------------------------------
+
+### REFERENCE MATERIAL
+
+[R for Data Science](https://r4ds.hadley.nz/)
+
+R For Data Science - Hadley Wickham et al. The definitive guide to R for Data Science by the Chief Data Scientist at R Studio
+
+------------------------------------------------------------------------
+
+### **SHORTCUTS**
+
+A few basic keyboard shortcuts to make life simpler in R:
+
+```{r Shortcuts}
+
+# To insert the "<-" symbol use alt + "-" (alt+minus)
+# To insert the pipe operator %>% use Ctrl + Shift + M
+# To insert a new code chunk in R Markdown use Ctrl + Alt + I
+```
+
+------------------------------------------------------------------------
+
+### **COMMENTS**
+
+```{r Comments}
+
+# Use the hash tag symbol before a string of text to create comments. Comments help people understand your code.
+```
+
+------------------------------------------------------------------------
+
+### **BASIC MATH**
+
+R can perform basic math calculations
+
+```{r Math}
+
+2+2
+1/6
+2^5
+```
+
+------------------------------------------------------------------------
+
+### **VARIABLES**
+
+To assign a value to a variable use: \<- (keyboard shortcut: alt + "-")
+
+Your variable will be visible in the Environment Tab (upper right) and can be recalled any time you need it.
+
+```{r Variables}
+
+
+a <- 2
+b <- "Apples"
+class(a)
+class(b)
+
+# You can perform math on numeric variables:
+a*2
+```
+
+![](images/RStudio_Environment-01.jpg)
+
+------------------------------------------------------------------------
+
+### **VECTORS**
+
+The most basic data structure in R. In the previous example, "a" is a vector of length 1. We use the "c" or combine function to create a vector.
+
+```{r Vectors}
+
+vector1 <- c(1,2,4,-7,9,-12,6,-3, 2, 5, 16)
+# a numeric vector
+
+vector2 <- c("apples", "oranges", "pears")
+# a character vector
+
+vector3 <- c(1,4,"apples", 5)
+# vectors can only contain one data type. R will force (coerce) the numbers to strings to create a vector of only one data type.
+
+vector1
+vector2
+vector3
+```
+
+------------------------------------------------------------------------
+
+### **SUBSETTING VECTORS**
+
+Using square brackets [] we can access items from a vector based on their position. Unlike other languages, R starts at position 1 (not position 0)
+
+```{r Subsetting Vectors}
+
+vector1[2]    # choosing a single item
+vector1[2:4]  # choosing a range of items
+vector2[1]
+
+# If you choose a position outside the length of the vector you will get "NA" as a response
+
+vector3[10]
+
+
+# We can modify vector contents by using subsetting:
+vector2[3] <- "bananas"
+vector2
+
+# Or by using an ifelse function (this returns vector1 and replaces all negative values with 0)
+ifelse(vector1 < 0, 0, vector1)
+
+# We can select vector items using logcal operators
+vector1[vector1<0]
+
+# Performing math on a vector
+vector1 + 4
+mean(vector1)
+median(vector1)
+sum(vector1)
+
+vector1 > 0
+# returns logical TRUE/FALSE values 
+```
+
+------------------------------------------------------------------------
+
+### **MATRICES**
+
+A matrix is a rectangular array of values (of any type) arranged in rows and columns.
+
+```{r Matrices}
+# This uses the matrix function to create a matrix with all values in a single column
+a.matrix <- matrix(c(1,2,3,4,5,6))
+
+a.matrix
+
+# This uses the matrix function to create a matrix with values in two columns
+a.matrix <- matrix(c(1,2,3,4,5,6), ncol=2)
+
+a.matrix
+
+# we could also use the cbind function to combine two vectors to achieve the same result
+a2.matrix <- cbind(c(1,2,3), c(4,5,6))
+a2.matrix
+
+# Use the rbind function to combine the vectors in the transpose (rows and columns switched)
+a3.matrix <- rbind(c(1,2,3),c(4,5,6))
+a3.matrix
+```
+
+To perform math on a matrix use functions such as rowSums(), colSums(), rowMeans(), and colMeans()
+
+```{r Matrix Math}
+a2.matrix
+
+colSums(a2.matrix)
+
+rowMeans(a2.matrix)
+```
+
+To index the element of a matrix you subscript by specifying the row \# and column \# (in that order)
+
+```{r Matrix Subsetting}
+a2.matrix[2,1]
+
+# if you leave one of the spaces empty R will assume you want the whole row or column
+a2.matrix[,2]
+```
+
+------------------------------------------------------------------------
+
+### **FUNCTIONS**
+
+Quite often R users will create their own functions to simplify life when they can't find one. You can create your own functions in R using the following structure:
+
+***function.name \<- function(argument1, argument2, ...)***
+
+***{***
+
+***some functionality***
+
+***}***
+
+when you want to use (or call )the function you simply types its name and provide the necessary inputs
+
+\> function.name(argument1,argument2)
+
+```{r Functions}
+
+# example 1 - a function that adds two numbers together (this already exists, its called the SUM function)
+
+add.numbers <- function(num1, num2)
+{
+  new_num = num1+num2
+  new_num
+}
+
+add.numbers(3,6)
+
+# example 2 - a function that checks whether a number is odd or even. returns TRUE if it is even, FALSE if it is odd 
+
+is.even <- function(a.number)
+  {
+  remainder <- a.number %% 2
+  if (remainder==0)
+    return(TRUE)
+  return(FALSE)
+}
+
+# testing
+is.even(10)
+is.even(7)
+```
+
+------------------------------------------------------------------------
+
+### **DATA LOADING IN R**
+
+The DPLYR package (part of TIDYVERSE) provides us with access to functions for loading various data types into a dataframe.
+
+There are many ways to import a file into R Studio. First you can use the "Import Dataset" button on the top right:
+
+![](images/Screenshot%202023-10-06%20095743.png)
+
+Alternatively you can use commands such as "read.table" and "read.csv" to import your data directly to a dataframe. It is important to know your working directory when importing files by using code. Use the ***getwd()*** function to see your current working directory.
+
+In your console at the bottom type getwd() and see what it returns
+
+to change your working directory you can use the ***setwd()*** function as follows:
+
+\> setwd("path to working directory")
+
+![](images/Screenshot%202023-10-06%20100340.png)
+
+```{r Data Loading}
+
+# data1 <- read.table("filename.txt", sep = ",", header=TRUE)
+# data2 <- read.csv("filename.csv")
+
+# if you get an error message that your file cannot be found, specify the entire file path in between the quotations or alternatively write your code like this:
+
+# data1 <- read.table(file.choose(), sep = ",", header=TRUE)
+
+# We can see the names R has assigned to the columns of the data frame using the names() function. Eg: names(data1)
+
+# We can get the basic structure of the data frame using the str() function. Eg: str(data1)
+
+```
+
+Example:
+
+create a txt file with the following data, and save it to your working directory:
+
+flavour,number
+
+pistachio,6
+
+vanilla,12
+
+chocolate,8
+
+strawberry,14
+
+mint chocolate chip,3
+
+rocky road,9
+
+caramel fudge swirl,5
+
+```{r Data Loading Example}
+
+# Use the data above to create a .txt (in notepad, word)
+
+# The basic structure of the read.table function is:
+# dataframe_name <- read.table("paste your file path here in quotes/flavour.txt", sep=",", header=TRUE)
+
+flav <- read.table("C://Users/jason/OneDrive/SAIT/SAIT Instructor/COURSE - NEW_SAIT_DATA420/data/flavour.txt", sep=",", header=TRUE)
+
+# If you are having difficulty getting the file path right, you can use the 
+# file.choose() function to search for the file manually  
+ 
+# if you are reading a csv file into your dataframe, you can use the read.csv function
+# flav <-  read.csv(file.choose())
+
+# display the first 5 rows of flav
+head(flav, 5)
+
+# We can see details of our newly created dataframe in several ways.
+
+# Look for the dataframe in the Environment window on the top right of R Studio
+# use a variety of functions to show the properties of the dataframe
+
+# list the structure of the dataframe
+str(flav)
+
+# list the columns of the dataframe
+names(flav)
+
+# displays the numbers of rows and columns in the dataframe
+dim(flav)
+
+# A combination of all of the above
+glimpse(flav)
+
+# Opens a new window showing the entire table
+#view(flav)
+
+
+# We can use the $ (extract operator) to access individual columns within a data frame (or use the [[ ]] double square brackets to get the same result)
+class(flav$flavour)
+```
+
+Note - R sometimes labels string variables as "Factor" (ie nominal or categorical) and not "Character"
+
+R, by default, automatically interprets a column from the data read from disk as a type factor if it contains characters. We can prevent this behavior manually by adding the `stringsAsFactors` optional keyword argument to the `read.*` commands:
+
+```{r Strings As Factors}
+# data3 <- read.csv("filename.csv", stringsAsFactors = FALSE)
+```
+
+We're now ready to move on to Part 2 where we learn about Data Wrangling and basic plotting using the GGPLOT package.
