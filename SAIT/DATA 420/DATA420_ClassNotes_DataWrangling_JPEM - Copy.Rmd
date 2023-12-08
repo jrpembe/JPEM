@@ -1,0 +1,370 @@
+---
+title: "DATA 420 Course Notes - Introduction to R Part II"
+author: "Jason Pemberton"
+date: "2023-09-18"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r Load Libraries, include=FALSE}
+library(tidyverse)
+library(knitr)
+library(dplyr)
+library(pollster)
+library(gmodels)
+library(carData)
+library(scales)
+```
+
+------------------------------------------------------------------------
+
+### [**DATA WRANGLING IN R**]{.underline}
+
+Data wrangling is the art of getting your data into R in a useful form for visualization and modelling. Data wrangling is very important: without it you can't work with your own data. There are three main parts to data wrangling:
+
+![](images/data-science-wrangle.png)
+
+The five main functions we will use in this class are:
+
+|             |                                                |
+|-------------|------------------------------------------------|
+| filter()    | Filter rows based on conditions                |
+| select()    | Select specific columns                        |
+| arrange()   | Reorder rows based on variable(s)              |
+| mutate()    | Create or modify columns using calculations    |
+| summarize() | Generate summary statistics for groups of data |
+
+If you don't already have the Titanic data loaded into a dataframe, repeat the process from Part 1. Load the titanic data into a new dataframe using the read.csv function.
+
+```{r Data Wrangling - Filter, echo=TRUE}
+titanic <- read.csv("C:/Users/jason/OneDrive/SAIT/SAIT Instructor/COURSE - NEW_SAIT_DATA420/data/titanic.csv")
+```
+
+#### **FILTER:**
+
+Use the **filter** function on the titanic dataframe to select only rows where the passenger age is greater than 30
+
+```{r}
+filtered_titanic <- titanic %>%
+  filter(age > 30)
+
+head(filtered_titanic)
+```
+
+#### **SELECT:**
+
+Use the **select** function to create a smaller dataframe with a subset of columns from the original
+
+```{r Data Wrangling - Select, echo=TRUE}
+selected_titanic <- titanic %>% 
+  select(sex, age, pclass) # you can select continuous columns using the range select(sex:pclass)
+
+head(selected_titanic)
+```
+
+#### **ARRANGE:**
+
+Use the **arrange** function on the titanic dataframe to order the selected column in ascending order (or descending order)
+
+```{r Data Wrangling - Arrange, echo=TRUE}
+
+# Sort the Titanic dataset by the "Class" column (in ascending order)
+titanic_sorted <- titanic %>%
+  arrange(pclass)
+
+# View the first few rows of the sorted dataset
+head(titanic_sorted)
+
+# Sort the Titanic dataset by the "Class" column in descending order
+titanic_sorted_desc <- titanic %>%
+  arrange(desc(class))
+
+# View the first few rows of the sorted dataset
+head(titanic_sorted_desc)  
+```
+
+#### **MUTATE:**
+
+Use the **mutate** function to create a new column **`Total_Family`** by adding the **`sibsp`** (number of siblings/spouses aboard) and **`parch`** (number of parents/children aboard) variables together:
+
+```{r Data Wrangling - Mutate, echo=TRUE}
+titanic <- titanic %>%
+  mutate(Total_Family = sibsp + parch)
+
+# View the first few rows of the titanic dataset and scroll to the right to see the new column
+head(titanic)
+```
+
+------------------------------------------------------------------------
+
+### [**INTRODUCTION TO GGPLOT PACKAGE (Part of Tidyverse)**]{.underline}
+
+base R uses a plotting function called "qplot" which takes the form:
+
+***qplot(column, data=dataframe, geom=...)***
+
+The three main types of geom charts are geom="bar", "histogram", and "density"
+
+We will not be using qplot in this class, rather we will use ggplot2, a favourite of many R users.
+
+You can load ggplot2 on its own by installing it and loading the library - or we can access ggplot2 by installing tidyverse.
+
+The basic format of a ggplot visualization is:
+
+**ggplot(dataframe, aes(x=column1, y=column2)) +**
+
+**geom_visual_type()**
+
+You could use geom_bar(), geom_point(), geom_col(), geom_boxplot() and many more
+
+Each time you add addition items to your plot you must include the "+" symbol to tell R you are continuing with additional code. The last line in your code does not end with a "+"
+
+You can find a comprehensive list of available plots at the ggplot website
+
+<https://ggplot2.tidyverse.org/reference/>
+
+------------------------------------------------------------------------
+
+#### [**BASIC R VISUALIZATIONS**]{.underline}
+
+Data Understanding is the second phase of CRISP-DM. Exploratory Data Analysis allows us to get to know our data better and make observations that will allow us to develop SMART business questions. Plotting our data is one of the best ways to get to know it.
+
+The kind of plot you create will depend on the type of data you are working with. For a single continuous variable, your best option is either a histogram or boxplot. There are three classes of bi-variate (two variable) relationships:
+
+-   The relationship between one categorical variable and one continuous variable
+
+    -   boxplots and bar charts
+
+-   The relationship between two categorical variables
+
+    -   tables and crosstabs
+
+    -   stacked, grouped, or segmented bar charts
+
+-   The relationship between two continuous variables
+
+    -   scatterplots
+
+------------------------------------------------------------------------
+
+### **BAR CHART**
+
+Bar chart (or column) shows us the numeric count of **categorical** features in our data. The categories are plotted on the x-axis and their frequencies or counts are plotted along the y-axis.
+
+Using the flavour.txt file created in ClassNotesPart1.Rmd we will make a basic bar chart showing the count of flavour types in the dataset
+
+```{r Ice Cream Bar Chart, echo=TRUE}
+
+# create a dataframe and read the txt file into it
+flav <- read.table("C:/Users/jason/OneDrive/SAIT/SAIT Instructor/COURSE - NEW_SAIT_DATA420/data/flavour.txt", sep=",", header=TRUE)
+
+# use ggplot to create a bar chart of the two columns
+# The last line adjusts the text on the horizontal axis to make it more legible
+flav %>% 
+  ggplot(aes(x=flavour, y=number, fill=flavour)) +
+    geom_bar(stat="identity") +
+    ggtitle("Ice cream flavour preferences") +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+
+```
+
+In this basic bar chart example we have used one **categorical** variable (flavour) versus one **continuous** variable (number) to create a visual representation of the data. We have also used the categorical flavour variable to control the color of the individual bars.
+
+Lets try another example using the ***penguins*** datatset\
+
+```{r Penguins Load Data, echo=TRUE}
+penguins <- read.csv("C:/Users/jason/OneDrive/SAIT/SAIT Instructor/COURSE - NEW_SAIT_DATA420/data/penguins.csv", stringsAsFactors = FALSE)
+str(penguins)
+```
+
+Using the str function we can see that we have four numeric variables and three categorical variables. We'll use this data to create several types of plots:
+
+#### **PENGUINS BAR CHART**
+
+```{r Penguins Bar Chart, echo=TRUE, warning=FALSE}
+# The penguins dataframe has some blank cells for the "sex" column. If we use this dataframe as input to our ggplot function we will get a third category with no label. In this example we remove the missing data first before using it for our plot. By using the [] brackets we are sub-setting the penguins dataframe, selecting all rows where the column "sex" is not blank (!= or is not)
+
+penguins[as.character(penguins$sex)!= "" ,] %>% 
+  ggplot(aes(x=species, y=bill_length_mm, fill=sex)) +
+    geom_bar(stat="identity") +
+    labs(title="Penguin Analysis",
+          x="Species",
+          y="bill length (mm)"
+         ) +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+```
+
+------------------------------------------------------------------------
+
+### **BOXPLOT**
+
+In addition to a bar chat we can also use a **BOXPLOT** to explore the data. Boxplots show us the statistical distribution of our data including the median, 1st and 3rd quartile, as well as any outliers.
+
+![](images/boxplot.png){width="70%"}
+
+#### **PENGUINS BOXPLOT**
+
+```{r Penguins Boxplot, echo=TRUE, warning=FALSE}
+# base r summary of the distribution of penguin data
+by(penguins$flipper_length_mm, penguins$species, summary)
+
+penguins %>% 
+  ggplot(aes(species, flipper_length_mm, fill=species))+
+    geom_boxplot()+
+    labs(title="Penguin Analysis",
+         x="Species",
+         y="flipper length (mm)")
+```
+
+#### **BAR CHART FOR CATEGORICAL vs CATEGORICAL VARIABLES**
+
+```{r}
+# For this example we will create a bar chart using the built-in "mpg" dataset. A bar plot takes only one variable (x) by default, however by using the second categorical variable to fill the bars color we can create a chart comparing two categroical variables in one visualization. 
+
+# We can see that SUV's are the most common vehicle type in the dataset (bar height) and that 4-wheel drive is the most common type of SUV.
+
+mpg %>% 
+  ggplot(aes(class, fill=drv))+
+  geom_bar(position="stack")
+```
+
+```{r Categorical vs Categorical - Penguins Data}
+# Lets try that again using the penguins dataframe. Use two of the categorical columns "species" and "island".
+penguins %>% 
+  ggplot(aes(species, fill=island))+
+  geom_bar(position="stack")+
+      labs(title="Penguin Analysis")
+```
+
+#### **SCATTER PLOT**
+
+We've used scatter plots extensively in the linear regression unit of DATA 415. Scatterplots are great for displaying the relationship between two continuous (numeric) variables. We will use them in greater detail in the next Markdown file (ClassNotesPart3.Rmd) but for now we'll just create a basic scatterplot.
+
+Create a scatterplot (using GGPLOT) that compares house prices and house area
+
+```{r message=FALSE, warning=FALSE}
+prices <- read.csv("C:/Users/jason/OneDrive/SAIT/SAIT Instructor/COURSE - NEW_SAIT_DATA420/data/HousePrices.csv")
+
+prices %>% 
+  ggplot(aes(area, price)) +
+  geom_point()+
+  geom_smooth(method = lm, se=FALSE)
+```
+
+------------------------------------------------------------------------
+
+### **DENSITY PLOTS**
+
+Comparing groups of continuous (numeric) data on the same plot. For this section we will install the ***carData*** package (don't forget to include library(carData) in the first code chunk. carData contains several useful training datasets including on called ***salaries*** that contains data on rank, years service, sex and salary of various professors.
+
+Before creating the density plot, lets better understand this new dataset by creating a simple bar chart (grouped by rank and average (mean) salary)
+
+```{r Salaries bar chart}
+# group data by rank, create mean_salary
+Salaries_Data <- Salaries %>% 
+  group_by(rank) %>% 
+  summarize(mean_salary = mean(salary))
+
+# create bar chart
+Salaries_Data %>% 
+  ggplot(aes(rank, mean_salary ))+
+  geom_bar(stat="identity")
+```
+
+Perhaps we can make it look a bit better... install a new package called ***scales***
+
+There's a lot of new code in this chunk. Take some time to read through and see what each line controls. In the first part of the ggplot function we see x=factor...\
+This new factor function will take the values of the rank column and arrange them in order of seniority as well as giving them easier to understand names (AsstProf becomes Assistant Professor and so on). The geom_text function adds the mean salary calculation to each bar.
+
+```{r Better salaries bar chart}
+# plot mean salaries in a more attractive fashion
+
+Salaries_Data %>%
+  ggplot(aes(x = factor(rank,
+                      labels = c("Assistant\nProfessor",
+                                 "Associate\nProfessor",
+                                 "Full\nProfessor")), 
+                      y = mean_salary)) +
+  geom_bar(stat = "identity", 
+           fill = "cornflowerblue") +
+  geom_text(aes(label = dollar(mean_salary)), 
+            vjust = -0.25) +
+  scale_y_continuous(breaks = seq(0, 130000, 20000), 
+                     label = dollar) +
+  labs(title = "Mean Salary by Rank", 
+       subtitle = "9-month academic salary for 2008-2009",
+       x = "",
+       y = "")
+```
+
+Now lets create a density plot
+
+```{r Density Plot}
+# plot the distribution of salaries 
+# by rank using a density plot
+Salaries %>% 
+  ggplot(aes(x = salary, fill = rank)) +
+    geom_density(alpha = 0.4) + # alpha sets the level of transparency
+    labs(title = "Salary distribution by rank")
+```
+
+------------------------------------------------------------------------
+
+### **TABLES & CROSSTABS**
+
+Sometimes all you need is a quick table or crosstab to display your data. Tables are especially useful for displaying Categorical vs Categorical data.
+
+```{r Tables and Crosstabs, warning=FALSE}
+# use the base R xtabs function to create a crosstab of your data
+xtabs(~ species + sex, data = penguins)
+xtabs(~ sex + year, data = penguins)
+
+# use the table function to achieve the same result
+table1 <- table(penguins$species, penguins$sex)
+table2 <- table(penguins$sex, penguins$year)
+
+# Count of penguins by sex and species
+table1
+
+# Count of penguins by sex and year
+table2
+
+# Proportions of each cell, rounded to two decimal places
+round(prop.table(table1), 2)
+
+# Proportions of each cell, rounded to two decimal places, as percentages
+round(100 * prop.table(table2), 2)
+
+# install the gmodels package to use the CrossTable function
+
+CrossTable(penguins$sex, penguins$species)
+CrossTable(penguins$species, penguins$island)
+```
+
+A little more practice with tables and crosstabs before we move on.
+
+Using the built in "diamonds" dataframe lets create a table of "cut" vs "color"
+
+```{r Tables Practice}
+# The table function produces a count of each item in the dataframe
+table(diamonds$cut, diamonds$color)
+
+# The prop.table function shows us the proportions of the individual cells relative to the whole
+prop.table(table(diamonds$cut, diamonds$color))
+
+# create a bar chart showing diamond "cut" with color fill = "clarity"
+diamonds %>% 
+  ggplot(aes(cut, fill=clarity))+
+  geom_bar(position = "fill")+ # position = fill plots proportion rather than absolute count
+  labs(title="Diamonds Database Cut by Clarity",
+       x="Cut")
+
+head(diamonds)
+diamonds
+
+```
+
+We'll end here. Go back through the markdown file and play around with the various lines of code. Change variables, colors etc. In the next section we will begin working with supervised models starting with linear regressions using scatterplots.

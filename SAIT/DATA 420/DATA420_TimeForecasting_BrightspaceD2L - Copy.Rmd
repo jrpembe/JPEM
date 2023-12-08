@@ -43,7 +43,7 @@ data %>%
 
 **PART 2**: Forecasting time series data using ARIMA model ARIMA, which stands for Autoregressive Integrated Moving Average, is a widely used statistical method for time series forecasting. It is a type of time series analysis and forecasting model that combines autoregression, differencing, and moving averages.
 
-**Auto Regressive (AR)**: This part of the model uses the relationship between an observation and several lagged observations (previous time steps). It suggests that the current value of a time series is linearly dependent on its past values.
+**Autoregressive (AR)**: This part of the model uses the relationship between an observation and several lagged observations (previous time steps). It suggests that the current value of a time series is linearly dependent on its past values.
 
 **Integrated (I)**: This component involves differencing the time series to make it stationary. Stationarity is a key assumption in many time series models, including ARIMA. Differencing involves subtracting the previous observation from the current observation, and it helps to remove trends or seasonality.
 
@@ -90,8 +90,63 @@ ggplotly(p)
 
 
 
+```{r}
+GlobalTempYear <- read_csv("C:/Users/jason/OneDrive/SAIT/SAIT Instructor/COURSE - NEW_SAIT_DATA420/data/GlobalTempYear.csv")
+
+GlobalTempYear %>% 
+  ggplot(aes(Year, AvgTemp))+
+  geom_line()
+  
+```
+
+```{r}
+# Fit ARIMA model
+arima_model2 <- auto.arima(GlobalTempYear$AvgTemp)
+
+forecast_ts2 <- forecast(arima_model2, h = 12, level = c(80, 95))  # forecasting 5 months ahead with 80% and 95% intervals
+plot(forecast_ts2)
 
 
+# Create a data frame for forecast results and intervals
+forecast_data2 <- data.frame(Year = seq(max(GlobalTempYear$Year) + 1, max(GlobalTempYear$Year) + 12),
+                            Forecast = forecast_ts2$mean,
+                            CI_80_lower = forecast_ts2$lower[, "80%"],
+                            CI_80_upper = forecast_ts2$upper[, "80%"],
+                            CI_95_lower = forecast_ts2$lower[, "95%"],
+                            CI_95_upper = forecast_ts2$upper[, "95%"])
+
+# Add forecast values and intervals to the plot
+p <- ggplot() +
+  geom_ribbon(data = forecast_data2, aes(x = Year, ymin = CI_80_lower, ymax = CI_80_upper), fill = "blue", alpha = 0.2) +
+  geom_ribbon(data = forecast_data2, aes(x = Year, ymin = CI_95_lower, ymax = CI_95_upper), fill = "blue", alpha = 0.1) +
+  geom_line(data = forecast_data2, aes(x = Year, y = Forecast, color = "Forecast")) +
+  geom_point(data = forecast_data2, aes(x = Year, y = Forecast, color = "Forecast")) +
+  geom_line(data = GlobalTempYear, aes(x = Year, y = AvgTemp, color = "Observed")) +
+  geom_point(data = GlobalTempYear, aes(x = Year, y = AvgTemp, color = "Observed")) +
+  labs(title = "Temperature Trend with ARIMA Forecast",
+       x = "Year",
+       y = "Average Temperature",
+       color = "Series")
 
 
+ggplotly(p)
+```
+
+```{r}
+# Using auto.arima to fit a season forecast
+arima_model2 <- auto.arima(GlobalTempYearTS, seasonal= FALSE)
+arima_forecast2 <- forecast(arima_model2)
+autoplot(arima_forecast2)
+
+# ARIMA forecasts one step at a time into the future, 
+# it will begin by looking back at t-1. Over time the influence of the previous value "decays"
+
+seasonal_arima_model2 <- auto.arima(GlobalTempYearTS)
+seasonal_arima_forecast2 <- forecast(seasonal_arima_model2,
+                                    h=5,
+                                    level=c(80,99))
+
+plot(seasonal_arima_forecast2)
+
+```
 

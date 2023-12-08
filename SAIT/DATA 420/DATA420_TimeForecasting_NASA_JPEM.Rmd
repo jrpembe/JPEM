@@ -1,0 +1,125 @@
+---
+title: "DATA420 TimeForecasting NASA Global Temperatures"
+author: "Jason Pemberton"
+date: "2023-12-06"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r Load Libraries, include=FALSE}
+library(tidyverse)
+library(plotly)
+library(forecast)
+library(gridExtra)
+```
+
+Time series plotting and forecasting using NASA's global land-ocean surface temperature data
+```{r}
+# Load the data
+GLB_Temp <- read_csv("C:/Users/jason/OneDrive/SAIT/SAIT Instructor/COURSE - NEW_SAIT_DATA420/data/GLB.Ts+dSST.csv", na = "Null")
+
+# Select relevant columns: Year and temperature differential from January - December
+temp_data <- GLB_Temp %>% select(year = Year, t_diff = `J-D`)
+```
+
+Plotting NASA's historical temperature anomaly data from 1880-2023.
+Only the first 5 lines of this code are absolutely necessary - the remaining lines control the visual aesthetics of the plot including: line width, point sizes and shapes, axis labels, legend size and position
+```{r Visualize original data, warning=FALSE}
+# Plot the historical data with smoothed trend line
+historical_plot <- temp_data %>%
+  ggplot(aes(year, t_diff)) +
+  geom_line(aes(color = "1"), size = 0.5) +
+  geom_point(fill = "white", aes(color = "1"), shape = 21, show.legend = FALSE) +
+  geom_smooth(se = FALSE, aes(color = "2"), size = 0.5, span = 0.15) +
+  scale_x_continuous(breaks = seq(1880, 2023, 20), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(-0.5, 1.5), expand = c(0, 0)) +
+  scale_color_manual(
+    name = NULL,
+    breaks = c(1, 2),
+    values = c("gray", "black"),
+    labels = c("Annual mean", "Lowess smoothing")
+  ) +
+  theme_light() +
+  theme(
+    axis.ticks = element_blank(),
+    plot.title.position = "plot",
+    plot.title = element_text(margin = margin(b = 10), color = "red", face = "bold"),
+    plot.subtitle = element_text(size = 8, margin = margin(b = 10)),
+    legend.position = c(0.15, 0.9),
+    legend.title = element_text(size = 0),
+    legend.key.height = unit(10, "pt"),
+    legend.margin = margin(0, 0, 0, 0)
+  ) +
+  labs(
+    title = "GLOBAL LAND-OCEAN TEMPERATURE INDEX",
+    subtitle = "Data source: NASA's Goddard Institute for Space Studies (GISS). \nCredit: NASA/GISS",
+    x = "YEAR",
+    y = "Temperature anomaly (C)"
+  )
+
+historical_plot
+```
+
+
+We will create a time series that contains the temperature anomaly data and input the time series(ts) to the auto.arima() function. After the model has run, we will create a data frame to use in the final before/after plot.
+```{r Create ARIMA model and time sseries forecast, warning=FALSE}
+# Forecast the next ten years using ARIMA with seasonality
+ts_data <- ts(GLB_Temp$`J-D`, start = min(GLB_Temp$Year), frequency = 1)
+arima_model <- auto.arima(ts_data, seasonal = TRUE)
+forecast_values <- forecast(arima_model, h = 10)
+
+# Create a data frame for the forecast values
+forecast_data <- data.frame(
+  year = seq(max(temp_data$year) + 1, max(temp_data$year) + 10),
+  t_diff = forecast_values$mean
+)
+```
+
+Only the first 7 lines of this code are absolutely necessary - the remaining lines control the visual aesthetics of the plot including: line width, point sizes and shapes, axis labels, legend size and position
+```{r visualize original data plus new time series forecast, warning=FALSE}
+# Plot the forecast data in blue
+forecast_plot <- temp_data %>% 
+  ggplot(aes(year, t_diff)) +
+  geom_line(aes(color = "1"), size = 0.5) +
+  geom_point(fill = "white", aes(color = "1"), shape = 21, show.legend = FALSE) +
+  geom_smooth(se = FALSE, aes(color = "2"), size = 0.5, span = 0.15) +
+  geom_line(data = forecast_data, aes(x = year, y = t_diff, color = "3"), linetype = "dashed", size = 0.5) +
+  geom_point(data = forecast_data, aes(x = year, y = t_diff, color = "3"), shape = 21, size = 2, show.legend = FALSE) +
+  scale_x_continuous(breaks = seq(1880, 2033, 20), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(-0.5, 1.5), expand = c(0, 0)) +
+  scale_color_manual(
+    name = NULL,
+    breaks = c(1,2,3),
+    values = c("gray", "black", "green"),
+    labels = c("Annual mean", "Lowess smoothing", "Forecast")
+  ) +
+  theme_light() +
+  theme(
+    axis.ticks = element_blank(),
+    plot.title.position = "plot",
+    plot.title = element_text(margin = margin(b = 10), color = "red", face = "bold"),
+    plot.subtitle = element_text(size = 8, margin = margin(b = 10)),
+    legend.position = c(0.15, 0.85),
+    legend.title = element_text(size = 0),
+    legend.key.height = unit(10, "pt"),
+    legend.margin = margin(0, 0, 0, 0)
+  ) +
+  labs(
+    title = "GLOBAL LAND-OCEAN TEMPERATURE INDEX",
+    subtitle = "Data source: NASA's Goddard Institute for Space Studies (GISS). \nCredit: NASA/GISS",
+    x = "YEAR",
+    y = "Temperature anomaly (C)"
+  )
+
+forecast_plot
+```
+
+using ggsave and arrangeGrob (from gridExtra library) to combine the two plots into one png file and save to your working directory
+```{r Save pltos as combined image, echo=TRUE, warning=FALSE}
+# Save the combined plot
+ggsave("combined_temperature_plot.png", arrangeGrob(historical_plot, forecast_plot), width = 6, height = 6)
+```
+

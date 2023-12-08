@@ -1,0 +1,132 @@
+---
+title: "DATA420_KNN_ZooAnimals"
+author: "Jason Pemberton"
+date: "2023-11-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r Load Libraries, include=FALSE}
+library(ggplot2) # Data visualization
+library(readr) # CSV file I/O, e.g. the read_csv function
+library(class) # For using KNN
+library(corrplot)
+```
+
+```{r Load Data}
+# This example of k nearest neighbour (knn) uses a dataframe of zoo animals characteristics to test the model's ability
+# to correctly classify animals based on these characteristics. 
+
+# First lets load some information on the classifications of animals in this project
+# Load the class.csv file and visualize the distribution of different animals with a bar chart
+list.files("../input")
+#Read csv file class.csv
+class.df <- read.csv("C:/Users/jason/OneDrive/SAIT/SAIT Instructor/COURSE - NEW_SAIT_DATA420/data/class.csv")
+head(class.df)
+
+# Now load the zoo dataframe to be use for testing our knn model
+# This dataframe contains a series of binary columns whether an unspecified animal
+# has various features (feathers, wings, teeth etc.)
+
+# Read data from file zoo.csv
+zoo.df <- read.csv("C:/Users/jason/OneDrive/SAIT/SAIT Instructor/COURSE - NEW_SAIT_DATA420/data/zoo.csv")
+head(zoo.df)
+```
+
+```{r Visualize data before knn}
+# Visualization of your data distribution
+# Provide dataframe as input to method ggplot
+# y axis contains types of animal
+# x axis contains Number of Animals in each type
+ggplot(class.df,aes(x=Class_Type,y=Number_Of_Animal_Species_In_Class),main="Number of Animals versus Types Of Animals")+
+  geom_bar(stat = "identity",fill="steelblue3",width = 0.5)+
+  geom_text(aes(label=class.df$Number_Of_Animal_Species_In_Class), vjust=1.6,color="black", size=3.5)
+
+# Another way to do some preliminary data understanding is using a correlation plot
+# This code uses the corrplot package to visualize the correlation matrix of the variables in columns 2 to 17. 
+# The method = "color" argument specifies that the correlation values will be represented by colors. 
+# The addrect = 8 argument adds a rectangle highlighting highly correlated variables. The order = "hclust" 
+# argument orders the variables based on hierarchical clustering. Adjustments can be made based on your 
+# preferences for visualization.
+
+# Select columns 2-17 for our model - leave the 1st & 18th columns (target) for labeling of our model results
+selected_columns <- zoo.df[, 2:17]
+
+# Calculate correlation matrix
+cor_matrix <- cor(selected_columns)
+
+# Plot correlation matrix
+corrplot(cor_matrix, method = "color", addrect = 8, order = "hclust", tl.col = "black", tl.srt = 45)
+```
+
+```{r knn model}
+# Now lets run our knn model to predict new data
+set.seed(123)
+
+# Ignoring first and last columns as these columns contain non numeric values animal names and class types respectively
+# split the zoo dataframe into training and testing dataframes (70/30 split by selecting row numbers)
+zoo.train <- zoo.df[1:70,2:17]
+zoo.test <- zoo.df[71:101,2:17]
+
+# Splitting last column (target) which contains animal class types
+zoo.train.labels <- zoo.df[1:70,18]
+zoo.test.labels <- zoo.df[71:101,18]
+
+
+# Applying KNN model on the training data set k=value to 3 (test other k values later)
+# we could wrap the knn model function in a for loop to test a variety of k values
+# for now we'll skip that. Try re-running lines 44-69 with different k values and 
+# keep an eye on the model accuracy
+zooClassification <- knn(train = zoo.train,test = zoo.test,cl=zoo.train.labels,k=3)
+
+# Confusion Matrix
+conf_matrix <- table(zooClassification, zoo.test.labels)
+print("Confusion Matrix:")
+print(conf_matrix)
+
+# Accuracy Calculation
+accuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)
+print(paste("Accuracy:", round(accuracy, 4)))
+
+# Visualization of the predicted data distribution
+predicted_df <- data.frame(Class_Type = zooClassification)
+
+# Translate Class_Number to Class_Type for labeling
+predicted_df$Class_Type <- class.df$Class_Type[match(predicted_df$Class_Type, class.df$Class_Number)]
+
+# Second ggplot using the KNN classification results
+ggplot(predicted_df, aes(x = reorder(Class_Type, -table(zooClassification)))) +
+  geom_bar(stat = "count", fill="steelblue3",width = 0.5) +
+  labs(title = "KNN Classification Results: Number of Animals versus Predicted Types Of Animals", x = "Animal Types") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
+```{r Before/After knn}
+# Combine actual and predicted labels into a new data frame
+comparison_df <- data.frame(
+  Animal = rep(c("Actual", "Predicted"), each = length(zoo.test.labels)),
+  Class_Type = c(zoo.test.labels, zooClassification)
+)
+
+# Create a bar plot to compare actual and predicted classifications
+ggplot(comparison_df, aes(x = factor(Class_Type, levels = unique(Class_Type)), fill = Animal)) +
+  geom_bar(stat = "count", position = "dodge", width = 0.7) +
+  labs(title = "Actual vs. Predicted Animal Classifications", x = "Animal Types", y = "Count") +
+  scale_fill_manual(values = c("Actual" = "skyblue", "Predicted" = "steelblue3"),
+                    name = "Data") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  # Add legend for Class_Number and Class_Type
+  theme(legend.position = "top") +
+  scale_x_discrete(labels = function(x) {
+    class_labels <- class.df$Class_Type[match(x, class.df$Class_Number)]
+    return(class_labels)
+  }) +
+  guides(fill = guide_legend(title = "Data"))
+```
+

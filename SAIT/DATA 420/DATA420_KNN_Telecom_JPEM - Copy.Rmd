@@ -1,0 +1,72 @@
+---
+title: "DATA420_KNN_Telecom_JPEM"
+author: "Jason Pemberton"
+date: "2023-11-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+A telecommunications provider has segmented its customer base by service usage patterns, categorizing the customers into four # groups. 
+If demographic data can be used to predict group membership, the company can customize offers for individual prospective customers. 
+It is a classification problem. That is, given the dataset, with predefined labels, we need to build a model to be used to predict class 
+of a new or unknown case.
+
+The last column is the target field, called custcat. It has four possible values that correspond to the four customer groups, as follows: 
+1- Basic Service 
+2- E-Service 
+3- Plus Service 
+4- Total Service
+
+```{r Load Libraries, include=FALSE}
+
+# Load the necessary libraries
+library(class)
+library(tidyverse)
+library(caret)
+library(corrplot)
+```
+
+```{r Load Data}
+# Read the csv file
+telecom <- read_csv("C:/Users/jason/OneDrive/SAIT/SAIT Instructor/COURSE - NEW_SAIT_DATA420/data/tele_customer.csv")
+```
+
+We should always withhold a portion of our original (labeled) data from the model to test its accuracy later on.
+There are many ways to partition data, in this case we will create training and testing subsets by referring to row numbers.
+How you partition the data will affect the model accuracy - start with 70/30 and adjust accordingly.
+``` {r Partition Data}
+# Split the data into training and testing sets
+train_telecom <- telecom[1:700, 1:11]  # first 700 rows of columns 1 to 11
+test_telecom <- telecom[701:1000, 1:11]  # last 300 rows of columns 1 to 11
+
+# Split the labels accordingly
+train_labels <- telecom$custcat[1:700]  # custcat = class labels
+test_labels <- telecom$custcat[701:1000]
+```
+
+A good estimate of k is to take the square root of the number of observations in your data. Try different values and re-run the model
+to see the effect on model accuracy
+``` {r knn model}
+# Perform KNN classification
+k <- 10  # Number of neighbors. Try different values to see the impact on your model accuracy
+knn_result <- knn(train_telecom, test_telecom, cl = train_labels, k = k)
+
+# Convert factors to characters (if not already done)
+actual_labels <- as.character(test_labels)
+knn_result <- as.character(knn_result)
+
+# Confusion Matrix
+conf_matrix <- table(Actual = actual_labels, Predicted = knn_result, dnn = c("Actual", "Predicted"))
+print("Confusion Matrix:")
+print(conf_matrix)
+
+# Model Accuracy
+accuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)
+print(paste("Model Accuracy:", round(accuracy, 2)))
+```
+
+Changing your partition ratio and k values we are able to achieve a model accuracy of no more than 44%. This is "ok" but not 
+an ideal model result. 
