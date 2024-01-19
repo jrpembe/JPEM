@@ -13,9 +13,9 @@ Monte Carlo simulation to estimate the probability of winning a simple dice game
 
 The possible outcomes of rolling two six-sided dice:
 
-![](images/dice_roll-01.png)
+![](images/dice_roll2.jpg)
 
-As we increase the number of rolls (number of simulations) our win probability = 7 should approach 17%. When the number of simulated dice rolls is low, the results of the model are quite unpredictable. However as we increase the number of rolls the probability stabilizes and approaches the expected value of 17%. If we were modeling a coin toss instead of rolling dice, we would expect the probability to approach 50% as the number of simulations grows. 
+As we increase the number of rolls (number of simulations) our win probability = 7 should approach 17%. When the number of simulated dice rolls is low, the results of the model are quite unpredictable. However as we increase the number of rolls the probability stabilizes and approaches the expected value of 17%. If we were modeling a coin toss instead of rolling dice, we would expect the probability to approach 50% as the number of simulations grows.
 
 ```{r}
 # Function to perform Monte Carlo simulation for a dice game

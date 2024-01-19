@@ -16,7 +16,7 @@ df <- read_csv("C:/JPEM_Git_Main/JPEM/JPEM_VSCode/data/penguins.csv")
 str(df)
 
 df %>% na.omit(df) %>%
-  ggplot(aes(species, fill = sex)) +
+  ggplot(aes(island, fill = sex)) +
   geom_bar() +
   labs(
        title = "Penguins",
@@ -25,7 +25,7 @@ df %>% na.omit(df) %>%
   theme_minimal()
 
 p <- df %>% na.omit(df) %>%
-  ggplot(aes(bill_length_mm, flipper_length_mm, col = species)) +
+  ggplot(aes(bill_length_mm, flipper_length_mm, col = species, alpha=0.5)) +
   geom_point() +
   geom_smooth(method = lm, se = FALSE) +
   labs(
