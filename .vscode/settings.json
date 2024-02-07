@@ -1,0 +1,9 @@
+{
+    "python.analysis.extraPaths": [
+        "./JPEM_Harvard_CS50/Unit Tests"
+    ],
+
+
+
+    "editor.renderWhitespace": "none"
+}
