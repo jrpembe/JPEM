@@ -1,8 +1,10 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
+import os
 
-air_df_mean = pd.read_csv("C:/Users/jason/OneDrive/Documents/Datacamp/DATACAMP - Data Scientist Professional with Python Career Track/data/no2.csv")
+
+air_df_mean = pd.read_csv("C:\\JPEM_Git_Main\\JPEM\\JPEM_Datacamp\\data\\no2.csv")
 
 # Scatterplot
 sns.relplot(
