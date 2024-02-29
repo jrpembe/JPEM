@@ -5,5 +5,5 @@
 
 
 
-    "editor.renderWhitespace": "none"
+    "editor.renderWhitespace": "all"
 }

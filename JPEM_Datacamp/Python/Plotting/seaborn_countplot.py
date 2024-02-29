@@ -15,3 +15,10 @@ gender = ["female", "female", "female", "female", "male", "male", "male", "male"
 sns.countplot(x=gender, hue=gender)
 
 # plt.show()
+
+# trying different seaborn themes
+
+for style in ['white', 'dark', 'whitegrid', 'darkgrid', 'ticks']:
+    sns.set_style(style)
+    sns.countplot(x=gender, hue=gender)
+    plt.show()
