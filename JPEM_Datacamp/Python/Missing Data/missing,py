@@ -1,0 +1,26 @@
+import pandas as pd 
+import seaborn as sns 
+import matplotlib.pyplot as plt
+
+nobel = pd.read_csv("C:/JPEM_Git_Main/JPEM/JPEM_Datacamp/data/nobel.csv")
+print(nobel.isna().sum())
+
+# if you encounter missing data you can drop (if 5% or less of total data) or impute with mean, median, mode
+
+threshold = len(nobel) * 0.05
+print(int(threshold))
+
+# using boolean indexing to drop missing values
+cols_to_drop = nobel.columns[nobel.isna().sum() <= threshold]
+print(cols_to_drop)
+
+nobel.dropna(subset=cols_to_drop, inplace=True)
+
+cols_with_missing = nobel.columns[nobel.isna().sum() > 0]
+print(cols_with_missing)
+
+for col in cols_with_missing[:-1]:
+    nobel[col].fillna(nobel[col].mode()[0])
+    
+print(nobel.isna().sum())
+
