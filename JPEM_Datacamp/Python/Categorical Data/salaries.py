@@ -24,3 +24,4 @@ colors_top_5 = sns.color_palette("bright", 5)
 sns.countplot(data=salaries, x="Designation", order=top_5_designations, palette=colors_top_5)
 plt.xticks(rotation=45)  # Rotate x-axis labels for better readability
 plt.show()
+
