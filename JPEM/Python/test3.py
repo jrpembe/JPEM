@@ -6,3 +6,6 @@ first + ' ' + last
 
 name[::-1]
 
+word = "abcdefghijklmnopqrstuvwxyz"
+word2 = set(word)
+print(word2)
