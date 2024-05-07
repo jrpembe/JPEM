@@ -67,10 +67,69 @@ where continent is not null
 order by 1,2
 
 -- VACCINATIONS
-select death.continent, death.location, death.date, death.population, vaxx.new_vaccinations
+select death.continent, death.location, death.date, death.population, vaxx.new_vaccinations,
+	sum(vaxx.new_vaccinations) OVER (Partition by death.location order by death.location, death.date) as Total_Vaccinations,
+	(Total_Vaccinations/death.population)*100 as Percent_Vaccinated
 from JPEM_PortfolioProject..covidDeaths as death
 join JPEM_PortfolioProject..covidVaccinations as vaxx
 	on death.date = vaxx.date and death.location = vaxx.location
-where death.continent is not null -- and death.location like '%Canada%'
+where death.continent is not null and death.location like '%Canada%'
 order by 2,3
 
+-- Using CTE
+-- With Popvs Vac (Continent, Location, Date, Population, Total_Vaccinations)
+-- as (   
+-- )
+
+-- Temp Table
+DROP table if exists #PercentPeopleVaccinated
+create table #PercentPeopleVaccinated
+(
+Continent nvarchar(255),
+Location nvarchar(255),
+Date datetime,
+Population numeric,
+New_vaccinations numeric,
+RollingPeopleVaccinated numeric,
+)
+
+insert into #PercentPeopleVaccinated
+select death.continent, death.location, death.date, death.population, vaxx.new_vaccinations,
+	sum(vaxx.new_vaccinations) OVER (Partition by death.location order by death.location, death.date) as RollingPeopleVaccinated
+from JPEM_PortfolioProject..covidDeaths as death
+join JPEM_PortfolioProject..covidVaccinations as vaxx
+	on death.date = vaxx.date and death.location = vaxx.location
+where death.continent is not null 
+
+
+select *, (RollingPeopleVaccinated/Population)*100
+from #PercentPeopleVaccinated
+order by 2,3
+
+-- Creating View to store data for visualization
+
+
+DROP view if exists PopVaccinated
+
+USE JPEM_PortfolioProject;
+GO
+
+CREATE VIEW PercentPopVaccinated AS
+SELECT 
+    death.continent, 
+    death.location, 
+    death.date, 
+    death.population, 
+    vaxx.new_vaccinations,
+    SUM(vaxx.new_vaccinations) OVER (
+        PARTITION BY death.location 
+        ORDER BY death.location, death.date
+    ) AS RollingPeopleVaccinated
+FROM 
+    covidDeaths AS death
+JOIN 
+    covidVaccinations AS vaxx
+        ON death.date = vaxx.date 
+        AND death.location = vaxx.location
+WHERE 
+    death.continent IS NOT NULL;
