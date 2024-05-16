@@ -1,0 +1,18 @@
+﻿location                                           TotalDeathCount
+-------------------------------------------------- ---------------
+High income                                        2988640
+Upper middle income                                2667468
+Europe                                             2100005
+North America                                      1663257
+Asia                                               1636953
+South America                                      1357513
+Lower middle income                                1341299
+Africa                                             259102
+Low income                                         48047
+Oceania                                            32577
+Warning: Null value is eliminated by an aggregate or other SET operation.
+
+(10 rows affected)
+
+
+Completion time: 2024-05-09T11:58:28.6319910-06:00
