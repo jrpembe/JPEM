@@ -1,4 +1,4 @@
--- Cleaning Dat using SQL Queries
+-- Cleaning Data using SQL Queries
 
 SELECT *
 FROM JPEM_PortfolioProject.[dbo].[NashvilleHousing]
