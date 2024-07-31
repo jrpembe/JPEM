@@ -22,7 +22,7 @@ library(tidyverse)
 
 
 # Number of simulations to run
-num_darts <- 1000
+num_darts <- 10000
 
 # Start our counter at zero
 num_darts_in_circle <- 0
@@ -42,7 +42,7 @@ paste("Loop Model accuracy: ", num_darts_in_circle / num_darts * 100, "%")
 # We will remove the for and if loops and replace them with vectors.
 
 # Number of simulations to run
-num_darts <- 1000
+num_darts <- 10000
 
 # Start our counter at zero
 num_darts_in_circle <- 0

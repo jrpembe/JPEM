@@ -4,9 +4,9 @@ import pandas as pd
 from statsmodels.formula.api import ols
 import numpy as np
 
-bank = pd.read_csv("C:/JPEM_Git_Main/JPEM/JPEM_Datacamp/data/churn.csv")
+churn = pd.read_csv("C:/JPEM_Git_Main/JPEM/JPEM_Datacamp/data/churn.csv")
 
-mdl_churn_vs_recency_lm = ols("has_churned ~ time_since_last_purchase", data=bank).fit()
+mdl_churn_vs_recency_lm = ols("has_churned ~ time_since_last_purchase", data=churn).fit()
 
 print(mdl_churn_vs_recency_lm.params)
 
@@ -15,7 +15,7 @@ intercept, slope = mdl_churn_vs_recency_lm.params
 # Using a linear model to predict a binary outcome creates a problem
 sns.scatterplot(x = "time_since_last_purchase",
                 y="has_churned",
-                data=bank)
+                data=churn)
 
 plt.axline(xy1=(0, intercept),
            slope=slope)
@@ -28,13 +28,13 @@ plt.show()
 # Lets use logistic regression (a type of generalized linear model) used when a reponse variable is binary
 from statsmodels.formula.api import logit
 
-mdl_churn_vs_recency_logit = logit("has_churned ~ time_since_last_purchase", data=bank).fit()
+mdl_churn_vs_recency_logit = logit("has_churned ~ time_since_last_purchase", data=churn).fit()
 
 print(mdl_churn_vs_recency_logit.params)
 
 # Plotting the logistic regression model
-sns.scatterplot(x = "time_since_last_purchase", y = "has_churned", data = bank)
-sns.regplot(x = "time_since_last_purchase", y = "has_churned", data = bank, ci = None, logistic = True)
+sns.scatterplot(x = "time_since_last_purchase", y = "has_churned", data = churn)
+sns.regplot(x = "time_since_last_purchase", y = "has_churned", data = churn, ci = None, logistic = True)
 
 # Create a range of time_since_last_purchase values
 x_values = np.linspace(-20, 20, 400)
@@ -47,7 +47,7 @@ plt.plot(x_values, y_values, color = 'blue')
 # Add the linear model line for comparison
 plt.axline(xy1 = (0, intercept), slope = slope, color = "black")
 
-plt.xlim(-20, 20)
+plt.xlim(0, 10)
 plt.ylim(-0.2, 1.2)
 
 plt.show()
