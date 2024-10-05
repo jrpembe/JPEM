@@ -1,49 +1,78 @@
 # Load necessary libraries
-# Install once if needed
-# install.packages("tidyverse")
-# install.packages("caTools")
+library(tidyverse)
+library(caret)
+library(ggplot2)
+library(reshape2)
 
-library(tidyverse)   # For data manipulation (includes read_csv)
-library(caTools)     # For train-test split
-library(Metrics)     # For evaluation metrics
+# Define column names
+column_names <- c('CRIM', 'ZN', 'INDUS', 'CHAS', 'NOX', 'RM', 'AGE', 'DIS', 'RAD', 'TAX', 'PTRATIO', 'B', 'LSTAT', 'MEDV')
 
-# Read the CSV file into a data frame
-df <- read_csv("C:/JPEM_Git_Main/JPEM/JPEM_SAIT/data/boston.csv")
+# Load the data
+df <- read.table("C:/JPEM_Git_Main/JPEM/JPEM_SAIT/data/housing.csv", col.names = column_names, header = FALSE)
 
-# Drop the 'TOWN' column
-df <- df %>% select(-TOWN)
-
-# Define response variable 'y' and predictor variables 'x'
+# Split data into predictor and response variables
 y <- df$MEDV
 x <- df %>% select(-MEDV)
 
-# Fit the linear regression model
-regressor <- lm(MEDV ~ ., data = df)
+################ Linear Regression ###########################
 
-# Print coefficients and intercept
-print(coef(regressor))
+# Train linear regression model
+model <- lm(MEDV ~ ., data = df)
+print(coef(model))
+print(model$coefficients[1])  # Intercept
 
-# Train-test split
-set.seed(1234)  # For reproducibility
-split <- sample.split(df$MEDV, SplitRatio = 0.7)
-train <- subset(df, split == TRUE)
-test <- subset(df, split == FALSE)
+################ Train Test Split ###########################
 
-# Fit the linear regression model on the training data
-regressor_train <- lm(MEDV ~ ., data = train)
+# Split the data into training and testing sets
+set.seed(1234)
+trainIndex <- createDataPartition(df$MEDV, p = .7, list = FALSE, times = 1)
+train <- df[trainIndex, ]
+test <- df[-trainIndex, ]
 
-# Print coefficients and intercept
-print(coef(regressor_train))
+# Train model on training data
+model <- lm(MEDV ~ ., data = train)
+print(coef(model))
+print(model$coefficients[1])  # Intercept
 
-# Make predictions on the test data
-y_pred <- predict(regressor_train, newdata = test)
+# Make predictions on test data
+y_pred <- predict(model, test)
 
-# Evaluation metrics
-mse <- mse(test$MEDV, y_pred)
-mae <- mae(test$MEDV, y_pred)
-r2 <- summary(regressor_train)$r.squared
+# Evaluate model performance
+mse <- mean((test$MEDV - y_pred)^2)
+mae <- mean(abs(test$MEDV - y_pred))
+r2 <- cor(test$MEDV, y_pred)^2
 
-# Print evaluation metrics
 print(mse)
 print(mae)
 print(r2)
+
+################ Visualization of data and results ###########################
+
+# Check dimensions of data
+print(dim(df))
+
+# Summary statistics of the data
+print(summary(df))
+
+# Boxplots for each column
+df_melt <- melt(df)
+ggplot(df_melt, aes(x = variable, y = value)) + 
+  geom_boxplot() + 
+  facet_wrap(~ variable, scales = "free") + 
+  theme_bw() +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+
+# Histograms for each column
+ggplot(df_melt, aes(x = value)) + 
+  geom_histogram(bins = 30) + 
+  facet_wrap(~ variable, scales = "free") + 
+  theme_bw()
+
+# Correlation heatmap
+cor_matrix <- cor(df)
+ggplot(melt(cor_matrix), aes(Var1, Var2, fill = value)) + 
+  geom_tile() + 
+  geom_text(aes(label = round(value, 2))) + 
+  scale_fill_gradient2(midpoint = 0, low = "blue", mid = "white", high = "red") +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
