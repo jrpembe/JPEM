@@ -44,7 +44,7 @@ monte_carlo_dice_simulation <- function(rolls, simulations) {
 
 # Set parameters for the simulation
 rolls <- 1        # Number of dice rolls in each simulation
-simulations <- 10000  # Number of simulations
+simulations <- 100000  # Number of simulations
 
 # Run Monte Carlo simulation for the dice game
 win_probability <- monte_carlo_dice_simulation(rolls, simulations)
