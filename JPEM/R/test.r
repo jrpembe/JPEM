@@ -12,7 +12,7 @@ mtcars %>%
   theme_minimal()
 
 
-df <- read_csv("C:/JPEM_Git_Main/JPEM/JPEM_VSCode/data/penguins.csv")
+df <- read_csv("C:/JPEM_Git_Main/JPEM/JPEM/data/penguins.csv")
 str(df)
 
 df %>% na.omit(df) %>%
