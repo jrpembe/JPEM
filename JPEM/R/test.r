@@ -3,12 +3,12 @@ library(plotly)
 str(mtcars)
 
 mtcars %>%
-  ggplot(aes(mpg, wt, color = "red", size = 5)) +
+  ggplot(aes(wt, mpg, color = "red", size = 5)) +
   geom_point() +
   labs(
        title = "Cars: Mileage vs Weight",
-       x = "Miles Per Gallon",
-       y = "Weight") +
+       x = "Weight",
+       y = "Miles Per Gallon") +
   theme_minimal()
 
 
@@ -25,7 +25,7 @@ df %>% na.omit(df) %>%
   theme_minimal()
 
 p <- df %>% na.omit(df) %>%
-  ggplot(aes(bill_length_mm, flipper_length_mm, col = species, alpha=0.5)) +
+  ggplot(aes(bill_length_mm, flipper_length_mm, col = species, alpha = 0.5)) +
   geom_point() +
   geom_smooth(method = lm, se = FALSE) +
   labs(
