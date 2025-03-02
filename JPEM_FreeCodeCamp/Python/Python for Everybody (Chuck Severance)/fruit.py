@@ -1,5 +1,6 @@
 # indexing through strings
 
+
 fruit = "banana"
 
 for letter in fruit:
@@ -23,3 +24,4 @@ for letter in word:
     if letter == "a" or letter == "o":
         count += 1
 print(count)
+
