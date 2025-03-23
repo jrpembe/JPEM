@@ -1,0 +1,78 @@
+---
+title: "Visualization - Part 5"
+author: "Jason Pemberton"
+date: "2025-03-11"
+output: html_document
+---
+
+Load Libraries
+
+```{r Load Libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+```
+
+------------------------------------------------------------------------
+
+Single categorical variable, consider using a bar chart to display the count of occurrences
+
+***fct_intfreq*** is a function from the **forcats** package that reorders the levels of a factor variable based on their frequency, with the most common level appearing first.  
+
+```{r Single Continuous Variable, message=FALSE, warning=FALSE}
+msleep %>% 
+  drop_na(vore) %>% 
+  ggplot(aes(fct_infreq(vore))) +
+  geom_bar(fill = "light blue") +
+  theme_bw()
+```
+
+---
+
+Single numeric variable, consider using a histogram    
+
+```{r}
+msleep %>% 
+  ggplot(aes(awake)) +
+  geom_histogram(binwidth = 1, fill = "light green") +
+  theme_bw() +
+  labs(
+    x = "Total Sleep",
+    y = NULL,
+    title = "Histogram of Total Sleep"
+  )
+```
+
+---
+
+Single Categorical and Single Numeric Variable  
+
+```{r Option 1: Boxplot, echo=FALSE, message=FALSE, warning=FALSE}
+msleep %>% 
+  drop_na(vore) %>% 
+  ggplot(aes(vore, sleep_total)) +
+  geom_boxplot() +
+  coord_flip() +
+  theme_bw()
+```
+
+---
+
+```{r Option 2a: Density Plot, echo=FALSE, message=FALSE, warning=FALSE}
+msleep %>% 
+  drop_na(vore) %>% 
+  ggplot(aes(sleep_total)) +
+  geom_density() +
+  facet_wrap(~vore) +
+  theme_bw()
+```
+
+---
+
+```{r Option 2b: Density Plot Filled by Category, echo=FALSE, message=FALSE, warning=FALSE}
+msleep %>% 
+  drop_na(vore) %>% 
+  # filter(vore == "omni" | vore == "herbi") %>%
+  # filter(vore %in% c("omni", "herbi")) %>% 
+  ggplot(aes(sleep_total, fill = vore)) +
+  geom_density(alpha = 0.4) +
+  theme_bw()
+```

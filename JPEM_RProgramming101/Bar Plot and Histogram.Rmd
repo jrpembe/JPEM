@@ -1,0 +1,74 @@
+---
+title: "Bar and Histogram Plots"
+author: "Jason Pemberton"
+date: "2025-03-10"
+output: html_document
+---
+
+```{r Load Libraries, include=FALSE}
+library(tidyverse)
+```
+
+```{r Initial EDA, echo=FALSE}
+head(msleep)
+
+names(msleep)
+```
+
+---
+
+```{r Visualize Data - Bar Chart, echo=FALSE}
+
+# Single Categorical Variable 
+
+msleep %>% 
+  drop_na(vore) %>%  # remove the variable reference and observe how many values are left out
+  ggplot(aes(fct_infreq(vore))) +
+  geom_bar(fill = "#57B35B") +
+  # coord_flip() + 
+  theme_bw() +
+  labs(
+    x = "Type of -Vore",
+    y = NULL,
+    title = "Number of Observations Per Order"
+  )
+```
+
+---
+
+```{r Visualze Data - Histogram, echo=FALSE}
+
+# Single Numeric Variable 
+
+msleep %>% 
+  drop_na(vore) %>%  # remove the variable reference and observe how many values are left out
+  ggplot(aes(awake)) +
+  geom_histogram(binwidth = 2, fill = "light blue") +
+  # coord_flip() + 
+  theme_bw() +
+  labs(
+    x = "Total Sleep (hours)",
+    y = NULL,
+    title = "Histogram of Total Sleep"
+  )
+```
+
+---
+
+```{r Multiple Numeric, echo=FALSE, message=FALSE, warning=FALSE}
+
+# multiple numeric variables
+msleep %>% 
+  filter(bodywt < 500) %>% 
+  ggplot(aes(bodywt, brainwt))+
+  geom_point(aes(colour = sleep_total,
+                 size = awake,
+                 alpha = 0.5))+
+  geom_smooth(method = lm, se = F)+
+  labs(
+    x = "Body Weight",
+    y = "Brain Weight",
+    title = "Brain and Body Weight")+
+  theme_minimal()
+```
+

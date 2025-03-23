@@ -1,0 +1,65 @@
+---
+title: "Exploratory Data Analysis"
+author: "Jason Pemberton"
+date: "2025-03-15"
+output: html_document
+---
+
+```{r Load Libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+```
+
+---
+
+```{r examining your data, message=FALSE, warning=FALSE, include=FALSE}
+dim(starwars) # how many rows and columns are in your dataframe
+#head(starwars)
+
+str(starwars) # returns all variables, data types and a snapshot of the data
+
+glimpse(starwars) # cleaner than str
+
+names(starwars) # return variable headers/names
+
+length(starwars) # how many variables
+
+class(starwars$hair_color) # like python "type"
+
+unique(starwars$hair_color) # use attach(starwars) to avoid having to type the df name
+
+View(sort(table(starwars$hair_color), decreasing = TRUE)) # frequency table of values
+
+barplot(sort(table(starwars$hair_color), decreasing = TRUE)) # frequency table of values
+```
+
+---
+
+```{r}
+
+starwars %>% 
+  select(hair_color) %>% 
+  count(hair_color) %>%
+  arrange(desc(n)) %>% 
+  View()
+
+```
+
+---
+
+```{r missing data}
+
+attach(starwars)
+View(starwars[is.na(hair_color), ]) # select the columns where hair color is NA
+```
+
+---
+
+```{r}
+
+summary(height) # summary statistics
+
+boxplot(height)
+
+hist(height)
+```
+

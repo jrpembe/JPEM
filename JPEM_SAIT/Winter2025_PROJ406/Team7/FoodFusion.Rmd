@@ -1,0 +1,187 @@
+---
+title: "FoodFusion"
+author: "Jason Pemberton"
+date: "2025-03-21"
+output: html_document
+---
+
+```{r Load Libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+library(caret)
+library(randomForest)
+```
+
+```{r Load Data, message=FALSE, warning=FALSE, include=FALSE}
+# Load dataset
+df <- read.csv("C:/Users/jason/OneDrive/SAIT/SAIT Instructor/2025-2026/WINTER 2025 - COURSE - PROJ406/Team 7/data/foodfusion.csv")
+
+# Calculate conversion rate
+conversion_rate <- mean(df$converted) * 100
+
+# Print result
+cat("Percentage of people who converted:", round(conversion_rate, 2), "%\n")
+```
+
+------------------------------------------------------------------------
+
+```{r Encoding and Conversion, message=FALSE, warning=FALSE, include=FALSE}
+# Encode categorical variables
+# Convert categorical variables to factors
+df$subscribing_channel <- as.factor(df$subscribing_channel)
+df$dietary_preference <- as.factor(df$dietary_preference)
+df$meal_type <- as.factor(df$meal_type)
+df$converted <- as.factor(df$converted)  # Ensure target variable is also a factor
+```
+
+------------------------------------------------------------------------
+
+```{r Data Partition, message=FALSE, warning=FALSE, include=FALSE}
+# Train-test split
+set.seed(123)
+trainIndex <- createDataPartition(df$converted, p = 0.8, list = FALSE)
+trainData <- df[trainIndex, ]
+testData <- df[-trainIndex, ]
+```
+
+------------------------------------------------------------------------
+
+```{r Build Model}
+# Train Random Forest Model
+model <- randomForest(converted ~ ., data = trainData, ntree = 100)
+```
+
+------------------------------------------------------------------------
+
+```{r}
+# Predictions
+predictions <- predict(model, testData)
+
+# Ensure predictions and actual values have the same factor levels
+predictions <- factor(predictions, levels = levels(testData$converted))
+
+# Evaluate Model
+confusionMatrix(predictions, testData$converted)
+
+```
+
+**Confusion Matrix Breakdown**
+
+|   | **Reference (Actual Value)** |   |
+|------------------------|------------------------|------------------------|
+| **Prediction (Model Output)** | **FALSE** | **TRUE** |
+| **FALSE** (Predicted No Conversion) | **967** (True Negatives) | **498** (False Negatives) |
+| **TRUE** (Predicted Conversion) | **29** (False Positives) | **506** (True Positives) |
+
+-   **True Negatives (TN = 967)** → Predicted `FALSE`, actual `FALSE`.
+
+-   **False Positives (FP = 29)** → Predicted `TRUE`, but actual was `FALSE`.
+
+-   **False Negatives (FN = 498)** → Predicted `FALSE`, but actual was `TRUE`.
+
+-   **True Positives (TP = 506)** → Predicted `TRUE`, actual `TRUE`.
+
+------------------------------------------------------------------------
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Sample Confusion Matrix
+conf_matrix <- matrix(c(967, 498, 29, 506), nrow = 2, byrow = TRUE)
+rownames(conf_matrix) <- c("Pred_FALSE", "Pred_TRUE")
+colnames(conf_matrix) <- c("Actual_FALSE", "Actual_TRUE")
+conf_matrix <- as.table(conf_matrix)
+
+# Extract values
+TN <- conf_matrix["Pred_FALSE", "Actual_FALSE"]  # True Negatives
+FN <- conf_matrix["Pred_FALSE", "Actual_TRUE"]   # False Negatives
+FP <- conf_matrix["Pred_TRUE", "Actual_FALSE"]   # False Positives
+TP <- conf_matrix["Pred_TRUE", "Actual_TRUE"]    # True Positives
+
+# Compute key metrics
+accuracy <- (TP + TN) / sum(conf_matrix)
+sensitivity <- TP / (TP + FN)  # Recall
+specificity <- TN / (TN + FP)
+precision <- TP / (TP + FP)  # Positive Predictive Value (PPV)
+npv <- TN / (TN + FN)  # Negative Predictive Value
+balanced_accuracy <- (sensitivity + specificity) / 2
+
+
+# Results
+cat("Accuracy:", round(accuracy, 4), "\n")
+cat("Sensitivity (Recall):", round(sensitivity, 4), "\n")
+cat("Specificity:", round(specificity, 4), "\n")
+cat("Precision (PPV):", round(precision, 4), "\n")
+cat("Negative Predictive Value (NPV):", round(npv, 4), "\n")
+cat("Balanced Accuracy:", round(balanced_accuracy, 4), "\n")
+
+```
+
+---
+
+Key Findings from the Model
+
+-   **Accuracy is 73.65%** – The model is moderately good at predicting conversions.
+
+-   **Sensitivity (True Positive Rate) is 97.09%** – The model is excellent at catching those who didn’t convert.
+
+-   **Specificity (True Negative Rate) is 50.4%** – The model struggles to identify actual converters (True cases).
+
+-   **Positive Predictive Value (Precision) is 66.01%** – When the model predicts someone won’t convert, it’s usually correct.
+
+-   **Negative Predictive Value is 94.58%** – When the model predicts a conversion, it’s often wrong.
+
+---
+
+**Business Insights for FoodFusion**
+---
+1. **Current Marketing Efforts Are Missing Some Potential Converters**
+
+The **specificity (50.4%)** and **precision (66%)** are **low**, meaning the model **mislabels some potential subscribers as non-converters**.
+
+**Recommendation**: **Re-evaluate targeting criteria**—perhaps **some high-value leads** are being overlooked.
+
+---
+
+2. **The Model is Good at Identifying People Who Will NOT Convert**
+
+**Sensitivity (97%)** means that **if the model says someone won’t subscribe, it’s usually correct**.
+
+**Recommendation**: Use this information to **optimize ad spend**—instead of targeting non-converters, **focus marketing efforts on high-likelihood converters.**
+
+---
+
+3. **Improve Marketing Messages for Potential Converters**
+
+Since the model struggles with specificity, **some True converters are being mis-classified**.
+
+**Recommendation**: Analyze patterns in **mis-classified cases**:
+
+What differentiates those **who converted but the model missed**?
+
+**Do they have specific demographics, interests, or engagement levels?**
+
+**Adjust the campaign messaging** to highlight what worked for similar users.
+
+---
+
+4. **A/B Testing on New Targeted Campaigns**
+
+Since **the dataset is balanced (50.2% converted, 49.8% didn’t)**, you don’t need SMOTE, but you **can test different marketing tactics** on different audience segments.
+
+**Recommendation**: Run **A/B tests** on offers, pricing, email subject lines, or ad creatives.
+
+---
+
+5. **Consider a Model with a Lower False Negative Rate**
+
+If FoodFusion’s priority is **not missing potential subscribers**, consider **tweaking the decision threshold** or **using a different classification model**.
+
+**Recommendation**: Try adjusting the **threshold (default is 0.5)** to better capture converters.
+
+---
+
+Final Recommendation to FoodFusion
+
+Reduce spending on people unlikely to convert (97% accuracy in that area)  
+Analyze mis-classified converters and retarget them  
+Optimize marketing messages for hesitant but interested leads  
+Run A/B tests on segmented groups  
+Consider adjusting the decision threshold for better converter prediction  

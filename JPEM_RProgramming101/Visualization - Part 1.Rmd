@@ -1,0 +1,60 @@
+---
+title: "GGPLOT - House Price"
+author: "Jason Pemberton"
+date: "2025-03-10"
+output: html_document
+---
+
+**VISUALIZATION:**
+
+Creating a basic scatter plot from two continuous variables.
+
+**Step 1:** Load necessary libraries\
+- tidyverse: a collection of R packages that help with data science tasks like importing, tidying, manipulating, and visualizing data\
+- ggpmisc: defines stats that help annotate the plots based on the results of model fitting  
+
+```{r Load Libraries, include=FALSE}
+library(tidyverse)
+library(ggpmisc)
+```
+
+**Step 2:** Load your data into a dataframe then take a look at your data\
+- head() returns the first 6 rows of your data (tail, the last 6 rows)\
+- summary() returns summary statistics for each variable in your data\
+- View() opens your entire data table
+
+```{r Load Data and EDA, echo=FALSE}
+df <- read.csv('./data/HousePrices.csv')
+head(df)
+summary(df)
+# View(df)
+```
+
+------------------------------------------------------------------------
+
+**Step 3:** Visualize your data using base R commands\
+- type the name of your dataframe followed by the \$ symbol to gain access to your variables
+
+```{r Base R Visualization, echo=FALSE, message=FALSE, warning=FALSE}
+# Base R scatter plot
+plot(df$area, df$price)
+```
+
+------------------------------------------------------------------------
+
+**Step 4:** Visualizing your data using ggplot
+
+```{r GGPLOT Visualization, echo=FALSE, message=FALSE, warning=FALSE}
+# GGPLOT
+ggplot(df, aes(x = area, y = price)) +
+  geom_point() +
+  geom_smooth(method="lm", se=FALSE, color="red") +
+  stat_poly_eq(aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")), 
+               formula = y ~ x, 
+               parse = TRUE) +
+  labs(title = "Scatterplot of Area vs Price",
+       x = "Area (sq ft)",
+       y = "Price ($)") +
+  theme_minimal()
+
+```

@@ -1,0 +1,58 @@
+---
+title: "FoodFusion Q2"
+author: "Jason Pemberton"
+date: "2025-03-22"
+output: html_document
+---
+
+---
+
+```{r Load Libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)  
+library(caret)
+library(factoextra)
+library(clustMixType)
+library(cluster)
+```
+
+
+
+``` {r Load Data}
+
+# Load Data
+df <- read.csv("C:/Users/jason/OneDrive/SAIT/SAIT Instructor/2025-2026/WINTER 2025 - COURSE - PROJ406/Team 7/data/foodfusion.csv")
+
+# Select relevant columns (drop date & user_id)
+df <- df %>% select(-date_served, -user_id)
+
+# Convert all columns to factors (K-Modes works with factors)
+df <- df %>% mutate(across(everything(), as.factor))
+
+# Optional: Check for missing values
+sum(is.na(df)) # If you have NAs, consider imputation or filtering
+
+```
+
+---
+
+```{r K-Modes Clustering}
+set.seed(123) # Ensure reproducibility
+
+# Choosing number of clusters (start with 3-5 and adjust)
+num_clusters <- 2
+
+kmodes_model <- kmeans(daisy(df, metric = "gower"), centers = num_clusters, nstart = 10)
+
+# Print results
+print(kmodes_model)
+
+# Add cluster labels to the dataset
+df$cluster <- as.factor(kmodes_model$cluster)
+
+# View cluster distribution
+table(df$cluster)
+
+
+# Check conversion rate per cluster
+table(df$cluster, df$converted)
+```

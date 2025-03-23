@@ -1,0 +1,135 @@
+---
+title: "Data Cleaning"
+author: "Jason Pemberton"
+date: "2025-03-16"
+output: html_document
+---
+
+1.  Explore
+2.  Clean
+3.  Manipulate
+4.  Describe and Summarize
+5.  Visualize
+6.  Analyze
+
+```{r Load Libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+```
+
+---
+
+```{r Explore, echo=FALSE}
+# Variable Types
+glimpse(starwars)
+
+# gender is a character (string) data type
+# 
+
+unique(starwars$gender)
+```
+
+```{r Clean, echo=FALSE}
+df <- starwars %>% 
+  mutate(height_factor = case_when(
+    height >= 180 ~ "Tall",
+    height >= 160 ~ "Average",
+    !is.na(height) ~ "Short"
+  ))
+
+
+levels(starwars$gender) # initially returns NULL as it is not a factor
+starwars$gender <- as.factor(starwars$gender)
+
+levels(starwars$gender) # returns feminine and masculine, in alphabetical order
+
+
+starwars$gender <- factor((starwars$gender),
+                          levels = c("masculine",
+                                     "feminine")) # set the order of the levels
+levels(starwars$gender)
+```
+
+``` {r}
+# Tall, Average and Short are only in alphabetical order
+df$height_factor <- as.factor(df$height_factor)
+
+levels(df$height_factor)
+unique(df$height_factor)
+
+# defining the order of our levels
+df <- df %>%
+  mutate(height_factor = factor(height_factor, 
+                                  levels = c("Short", "Average", "Tall"), 
+                                  ordered = TRUE))
+
+levels(df$height_factor)
+```
+
+---
+
+```{r Select Variables}
+
+names(starwars)
+
+# There are three columns that end with "color", we can select all three using
+starwars %>% 
+  select(name, height, ends_with("color")) %>% 
+  names()
+
+```
+
+---
+
+```{r Filter Observations}
+
+unique(starwars$hair_color)
+
+starwars %>% 
+  select(name, height, ends_with("color")) %>% 
+  filter(hair_color %in% c("blond", "brown") &
+  height < 180)
+  
+```
+
+---
+
+```{r Missing Data}
+
+mean(starwars$height, na.rm = TRUE)
+
+starwars %>% 
+  select(name, gender, hair_color, height)
+
+starwars %>% 
+  select(name, gender, hair_color, height) %>% 
+  na.omit()
+
+starwars %>% 
+  select(name, gender, hair_color, height) %>% 
+  filter(!complete.cases(.)) # shows any row missing data
+
+starwars %>% 
+  select(name, gender, hair_color, height) %>% 
+  filter(!complete.cases(.)) %>% 
+  drop_na(height)
+
+starwars %>% 
+  select(name, gender, hair_color, height) %>% 
+  filter(!complete.cases(.)) %>% 
+  mutate(hair_color = replace_na(hair_color, "none"))
+```
+
+---
+
+```{r Dealing with Duplicates}
+
+Names <- c("Peter", "John", "Andrew", "Peter")
+Age <- c(22, 33, 44, 22)
+
+friends <- data.frame(Names, Age)
+friends[!duplicated(friends), ] # return all non duplicated rows
+
+friends %>% distinct()
+
+```
+

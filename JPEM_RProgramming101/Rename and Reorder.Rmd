@@ -1,0 +1,36 @@
+---
+title: "Rename and Reorder"
+author: "Jason Pemberton"
+date: "2025-03-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r Load Libraries, include=FALSE}
+library(tidyverse)
+```
+
+```{r Load Data and EDA, echo=FALSE, message=FALSE, warning=FALSE}
+data <- starwars
+head(data)
+```
+
+```{r Rename and Reorder}
+data <- data %>% 
+  select(name, gender, mass, height, hair_color) %>% 
+  filter(mass < 400) %>% 
+  rename(weight = mass) %>% 
+  mutate(gender = recode(gender, "masculine" = "male", "feminine" = "female"))
+
+head(data)
+```
+
+
+```{r Visualize with Base R, echo=FALSE}
+plot(data$height, data$weight)
+
+```
+

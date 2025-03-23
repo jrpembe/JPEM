@@ -1,0 +1,87 @@
+---
+title: "Visualization - Part 3"
+output:
+  html_document:
+    df_print: paged
+---
+
+**Load Libraries**\
+Most of what you will need for a simple visualization will be contained in tidyverse.\
+Later we will begin searching for additional libraries to carry out more complex machine learning techniques.
+
+```{r Load Libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+```
+
+------------------------------------------------------------------------
+
+The built-in "msleep" dataset contains statistics on the sleep behaviour of a variety of mammals.  
+
+```{r EDA, echo=FALSE, message=FALSE, warning=FALSE}
+head(msleep)
+
+summary(msleep)
+
+names(msleep)
+```
+
+---
+
+Scatterplot of two continuous variables "body weight" and "brain weight"  
+ - Adjust the bodywt filter to see how the plot changes  
+ - Add modifiers to the trend line (geom_smooth) to turn on linear regression and remove error bars  
+    - method = "lm", se= F   
+ 
+```{r Visualize data with scatterplot, echo=FALSE, message=FALSE, warning=FALSE}
+msleep %>% 
+  filter(bodywt < 50) %>% 
+  ggplot(aes(bodywt, brainwt))+
+  geom_point(aes(colour = sleep_total,
+                 size = awake))+
+  geom_smooth()+
+  # geom_text(aes(label = name), vjust = -1, hjust = 0.5) +
+  labs(
+    x = "Body Weight",
+    y = "Brain Weight",
+    title = "Brain and Body Weight")+
+  theme_minimal()
+```
+
+---
+
+Boxplot of one categorical vs one continuous variable "vore" and "brain weight"   
+ - Adjust the bodywt filter to see how the plot changes  
+ - see what effect coord_flip() has on the visual  
+
+ 
+```{r Visualize portion of data with boxplot, echo=FALSE, message=FALSE, warning=FALSE}
+
+msleep %>% 
+  filter(!is.na(brainwt), !is.na(vore), bodywt < 10) %>% 
+  ggplot(aes(x = vore, y = brainwt)) +
+  geom_boxplot() +
+  theme_minimal() +
+  coord_flip() +
+  labs(title = "Distribution of Brain Weight by Vore Type",
+       x = "Vore",
+       y = "Brain Weight (kg)")
+```
+
+---
+
+```{r}
+# Create histograms faceted by vore type
+
+msleep %>% 
+  filter(!is.na(brainwt), !is.na(vore), bodywt < 100) %>%
+    ggplot(aes(x = brainwt, fill = vore)) +
+      geom_histogram(bins = 10, color = "black", alpha = 0.7) +  # Adjust bins as needed
+      facet_wrap(~ vore, ncol = 1, scales = "fixed") +  # One column, free scale per vore
+      theme_minimal() +
+      labs(title = "Histogram of Brain Weight by Vore Type",
+          x = "Brain Weight (kg)",
+          y = "Count") +
+      scale_fill_brewer(palette = "Set2")  # Nice colour scheme
+```
+
+
