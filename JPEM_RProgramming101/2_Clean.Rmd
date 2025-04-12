@@ -127,9 +127,21 @@ Names <- c("Peter", "John", "Andrew", "Peter")
 Age <- c(22, 33, 44, 22)
 
 friends <- data.frame(Names, Age)
-friends[!duplicated(friends), ] # return all non duplicated rows
+friends[!duplicated(friends), ] # return all non-duplicated rows
 
 friends %>% distinct()
 
+```
+
+---
+
+```{r Recoding Variables}
+
+
+starwars %>% 
+  select(name, gender) %>% 
+  mutate(gender = recode(gender,
+                         "masculine" = 1,
+                         "feminine" = 2))
 ```
 

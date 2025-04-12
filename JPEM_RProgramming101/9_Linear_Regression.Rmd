@@ -1,0 +1,62 @@
+---
+title: "Linear Regression"
+author: "Jason Pemberton"
+date: "2025-04-06"
+output: html_document
+---
+
+```{r Load Libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+```
+
+
+Linear Regression:
+- Examining the relationship between two numeric variables
+```{r}
+cars %>% 
+  lm(dist ~ speed, data = .) %>% 
+  summary()
+
+# Linear Equation: y = 3.9324x - 17.5791
+# distance to stop intercept of -17.58 does not make sense
+# our slope is 3.93.
+
+# H0: The slope is zero
+# H1: The slope is not zero
+# Our slope is 3.93 with a p-value of 1.49e-12, we reject the null hypothesis
+
+mod <- lm(dist ~ speed, data = cars)
+
+attributes(mod)
+mod$coefficients
+
+
+# R-Squared = 0.65. Speed explains 65% of the variation we see in stopping distance.
+
+hist(mod$residuals) # linear regression assumes the data is normally distributed and teh residuals are evenly distributed around zero
+```
+
+---
+
+```{r Using our Model Predict New Results}
+new_speeds <- data.frame(speed = c(10, 20, 50))
+
+predict(mod, new_speeds) %>% round(1)
+```
+
+---
+
+```{r Alternate Method}
+
+cars %>% 
+  lm(dist ~ speed, data = .) %>% 
+  predict(data.frame(speed = c(10, 20, 50))) %>% 
+  round()
+```
+
+---
+
+```{r}
+
+```
+

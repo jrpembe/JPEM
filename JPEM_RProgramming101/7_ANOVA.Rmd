@@ -1,0 +1,144 @@
+---
+title: "ANOVA"
+author: "Jason Pemberton"
+date: "2025-03-31"
+output: html_document
+---
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+library(patchwork)
+library(gapminder)
+library(forcats)
+```
+
+---
+
+```{r Create Dataset}
+
+gapdata <- gapminder %>% 
+  filter(year == 2007 &
+           continent %in% c("Americas", "Europe", "Asia")) %>% 
+  select(continent, lifeExp)
+```
+
+---
+H0 (Null Hypothesis): The mean life expectancy of the three continents is the same  
+
+H1: (Alternative Hypothesis): The mean life expectancy is not the same  
+
+```{r Look at distribution of means}
+
+gapdata %>%
+  group_by(continent) %>%
+  summarise(Mean_life = mean(lifeExp)) %>%
+  arrange(desc(Mean_life))
+```
+
+A difference in the mean values is observed in the sample data, but is it statistically significant (p < 0.05)?  
+
+```{r Create ANOVA model}
+
+gapdata %>% 
+  aov(lifeExp ~ continent, data = .) %>% 
+  summary()
+
+aov_model <- gapdata %>% 
+    aov(lifeExp ~ continent, data = .)
+
+```
+
+Is this significance being driven by a particular continent?  
+Given than p is much less than 0.05 (p = 0.00000342), we reject the null hypothesis. The mean life expectancy is not the same for each continent.  
+
+---
+
+```{r Compare results}
+
+gapdata %>% 
+  aov(lifeExp ~ continent, data = .) %>% 
+  TukeyHSD()  # Honestly Significant Difference
+
+
+gapdata %>% 
+  aov(lifeExp ~ continent, data = .) %>% 
+  TukeyHSD() %>% 
+  plot()
+```
+
+The difference between Asia and Americas is not statistically significant, but Europe-Americas, and Europe-Asia is.
+
+---
+
+```{r Visualize}
+
+gapdata %>% 
+  ggplot(aes(continent, lifeExp, fill=continent)) +
+  geom_boxplot(show.legend = TRUE) +
+  geom_jitter(show.legend = FALSE, width = 0.25, shape = 21, color = "black") +
+  coord_flip()
+```
+
+---
+
+```{r}
+gapdata %>%
+  ggplot(aes(x = lifeExp, fill = continent, color = continent)) +
+  geom_density(alpha = 0.4) +
+  # Add mean vertical line for each continent
+  geom_vline(data = gapdata %>% 
+               group_by(continent) %>% 
+               summarise(mean_lifeExp = mean(lifeExp)), 
+             aes(xintercept = mean_lifeExp, color = continent), 
+             linetype = "dashed") +
+  facet_wrap(~ continent, scales = "free", ncol = 1) +  # Stack plots vertically
+  labs(title = "Density Plots of Life Expectancy by Continent with Mean Lines",
+       x = "Life Expectancy",
+       y = "Density") +
+  theme_minimal() +
+  theme(legend.position = "none")  # Remove legend for cleaner appearance
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(patchwork)
+
+
+boxplot <- gapdata %>%
+  ggplot(aes(continent, lifeExp, fill = continent)) +
+  geom_boxplot(show.legend = FALSE, alpha = 0.5) +  # Remove legend
+  geom_jitter(show.legend = FALSE, width = 0.25, shape = 21, color = "black") +
+  coord_flip() +
+  scale_fill_manual(values = c("Europe" = "blue", "Asia" = "green", "Americas" = "red")) +  # Custom color order
+  labs(title = "Life Expectancy by Continent",
+       x = "Continent",
+       y = "Life Expectancy") +
+  theme_minimal()
+
+# Density plot with vertical mean lines (on the right)
+density_plot <- gapdata %>%
+  mutate(continent = factor(continent, levels = c("Americas", "Asia", "Europe"))) %>% 
+  ggplot(aes(x = lifeExp, fill = continent, color = continent)) +
+  geom_density(alpha = 0.5) +
+  geom_vline(data = gapdata %>%
+               group_by(continent) %>%
+               summarise(mean_lifeExp = mean(lifeExp)),
+             aes(xintercept = mean_lifeExp, color = continent),
+             linetype = "dashed") +  # Add vertical mean lines
+  facet_wrap(~ continent, ncol = 1, scales = "free_y") +  # Stack density plots vertically
+  labs(x = "Life Expectancy",
+       y = "Density") +
+  theme_minimal() +
+  theme(legend.position = "none",
+        strip.text = element_blank())  # Turn off facet labels
+
+
+# Combine the box plot and density plot side-by-side
+combined_plot <- boxplot | density_plot  # Use patchwork to align the visuals horizontally
+
+# Display the combined plot
+print(combined_plot)
+  
+```
+

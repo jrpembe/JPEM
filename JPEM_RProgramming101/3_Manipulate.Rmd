@@ -1,0 +1,133 @@
+---
+title: "Data Manipulation"
+author: "Jason Pemberton"
+date: "2025-03-26"
+output: html_document
+---
+
+```{r Load Libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+```
+
+---
+
+```{r Renaming variables}
+
+msleep %>% 
+  rename("conserv" = "conservation") # new name goes on the left side of the assignment
+
+```
+
+---
+
+```{r Reorder variables}
+
+msleep %>% 
+  select(vore, name, everything()) # simply change the order you select them
+
+```
+
+---
+
+```{r Change a variable type}
+
+class(msleep$vore)
+
+msleep$vore <- as.factor(msleep$vore)
+
+msleep %>% 
+  mutate(vore = as.character(vore)) %>% 
+  glimpse()
+
+```
+
+---
+
+```{r Select variables to work with}
+
+msleep %>% 
+  select(
+    2:4, # select variables by column number or range
+    awake, # select by name
+    starts_with("sleep"), # select by starts_with
+    contains("wt")) %>%  # select by contains
+  names()
+      
+```
+
+---
+
+```{r Filter and Arrange}
+
+unique(msleep$order)
+
+msleep %>% 
+  filter((order == "Carnivora" | 
+            order == "Primates") &
+           sleep_total > 8) %>% # filter works on row level
+  select(name, order, sleep_total) %>% # select works on columns
+  arrange(-sleep_total) %>% # descending
+  View
+```
+
+---
+
+```{r Change Observations (mutate)}
+msleep %>% 
+  mutate(brainwt = brainwt * 1000) %>% # overwrites existing column
+  View()
+```
+
+---
+
+```{r Conditional Change}
+
+msleep$brainwt
+
+msleep$brainwt > 0.01
+
+size_of_brain <- msleep %>% 
+  select(name, brainwt) %>% 
+  drop_na(brainwt) %>%
+  mutate(brain_size = if_else(brainwt > 0.01,
+                              "large",
+                              "small"))
+
+
+
+```
+
+---
+
+```{r Recode Data & Rename a Variable}
+
+size_of_brain %>% 
+  mutate(brain_size = recode(brain_size,
+                             "large" = 1,
+                             "small" = 2))
+```
+
+---
+
+```{r Reshape Data from Wide to Long or Long to Wide, message=FALSE, warning=FALSE}
+
+library(gapminder)
+
+# View(gapminder)
+
+data <- select(gapminder, country, year, lifeExp)
+
+View(data) # data is in long format, with each year appearing as a row entry
+wide_data <- data %>%
+  pivot_wider(names_from = year, values_from = lifeExp)
+  
+View(wide_data)  
+  
+long_data <- wide_data %>% 
+  pivot_longer(2:13,
+               names_to = "year",
+               values_to = "lifeExp")
+
+View(long_data)
+```
+

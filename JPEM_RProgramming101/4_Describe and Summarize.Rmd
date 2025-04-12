@@ -1,0 +1,91 @@
+---
+title: "Describe and Summarize"
+author: "Jason Pemberton"
+date: "2025-03-28"
+output: html_document
+---
+
+```{r Load Libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+```
+
+------------------------------------------------------------------------
+
+1.  Range / Spread
+2.  Centrality
+3.  Variance
+4.  Summarize
+5.  Create Tables
+
+```{r Look at your data}
+glimpse(msleep)
+```
+
+---
+
+```{r Statistics}
+min(msleep$awake)
+max(msleep$awake)
+range(msleep$awake)
+IQR(msleep$awake)
+mean(msleep$awake)
+median(msleep$awake)
+var(msleep$awake)
+
+summary(msleep) # returns summary of all variables in your dataframe
+```
+
+---
+
+```{r Summarize your data}
+msleep %>% 
+  select(sleep_total, brainwt) %>% 
+  summary
+```
+
+---
+
+```{r Creating a summary table}
+
+# Create a summary table for each category
+# of "vore". Show min, max, difference, and 
+# average "sleep_total" and arrange by average
+
+msleep %>% 
+  drop_na(vore) %>% 
+  group_by(vore) %>% 
+  summarise(Lower = min(sleep_total),
+            Average = mean(sleep_total),
+            Upper = max(sleep_total),
+            Difference = max(sleep_total) - min(sleep_total)) %>% 
+  arrange(Average) %>% 
+  View()
+```
+
+---
+
+```{r Contingency Tables, Two Categorical Variables, message=FALSE, warning=FALSE}
+
+library(MASS)
+attach(Cars93) # attach don't have to keep specifying the dataframe
+
+glimpse(Cars93)
+
+table(Origin)
+table(AirBags, Origin) 
+addmargins(table(AirBags, Origin), 1) # 1 sums columns, 2 sums rows
+
+prop.table(table(AirBags, Origin)) * 100 # proportion table all add to 100%
+
+prop.table(table(AirBags, Origin), 2)  * 100 # proportion table all columns add to 100%
+
+prop.table(table(AirBags, Origin), 1)  * 100 # proportion table all rows add to 100%
+
+round(prop.table(table(AirBags, Origin), 2) * 100, 2) # proportion table
+
+Cars93 %>% 
+  group_by(Origin, AirBags) %>% 
+  summarise(number = n()) %>% 
+  pivot_wider(names_from = Origin,
+              values_from = number)
+```

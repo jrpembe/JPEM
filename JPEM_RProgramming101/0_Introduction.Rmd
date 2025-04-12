@@ -1,0 +1,44 @@
+---
+title: "Introduction"
+author: "Jason Pemberton"
+date: "2025-04-07"
+output: html_document
+---
+
+Creating lists
+```{r}
+name <- c("Greg", "Paul", "Kim")
+age <- c(47, 52, 34)
+gender <- c("M", "M", "F")
+```
+
+---
+
+Turning lists into a data frame
+```{r}
+friends <- data.frame(name, age, gender)
+friends
+```
+
+---
+
+Accessing elements of a data frame
+```{r}
+names(friends)
+
+friends$name
+```
+
+---
+
+Sub-setting data frame
+```{r}
+friends[ , ] # leaving it blank returns everything
+
+friends[1, ] # returns 1st row from all columns
+
+friends[ ,1] # returns all rows from 1st columns
+
+friends[friends$age < 50, 1:2] # where any rows meets age criteria, return 1st and 2nd columns 
+```
+

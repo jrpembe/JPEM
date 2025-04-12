@@ -1,0 +1,236 @@
+---
+title: "T-Test"
+author: "Jason Pemberton"
+date: "2025-03-30"
+output: html_document
+---
+
+```{r Load Libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+library(patchwork)
+library(gapminder)
+```
+
+---
+Hypothesis Testing:
+H0 (null hypothesis) - The mean life expectancy in Afirca is 50 years
+H1 (alternative hypothesis) - The mean life expectancy is not 50 years  
+
+Observation: Sample data provides a mean life expectancy for Afirca of 48.9. Is this statistically significant?  
+
+Lets start by assuming the mean life expectancy is actually 50 years.
+
+In most cases, 5% or less is statistically significant (p < 0.05)
+```{r t-test, single sample}
+
+gapminder %>% 
+  filter(continent == "Africa") %>% 
+  select(lifeExp) %>% 
+  t.test(mu = 50)
+
+# p-value is 0.002038
+# we can reject the null hypothesis
+# we accept the alternative hypothesis
+
+my_ttest <- gapminder %>% 
+  filter(continent == "Africa") %>% 
+  select(lifeExp) %>% 
+  t.test(mu = 50)
+
+# what is inside you t-test object?
+attributes(my_ttest)
+
+my_ttest$p.value
+```
+
+---
+
+``` {r Visualize Africa life expectancy}
+# Filter data for Africa
+africa_data <- gapminder %>%
+  filter(continent == "Africa")
+
+# Calculate mean life expectancy for Africa
+mean_lifeExp_africa <- mean(africa_data$lifeExp)
+
+# Create density plot
+ggplot(africa_data, aes(x = lifeExp)) +
+  geom_density(fill = "red", alpha = 0.2) +
+  geom_vline(xintercept = mean_lifeExp_africa, linetype = "dashed", color = "black", size = 1) +
+  labs(title = "Density Plot of Life Expectancy in Africa",
+       x = "Life Expectancy",
+       y = "Density") +
+  theme_minimal()
+```
+
+---
+
+```{r t-test, two-sided}
+# H0: Africa and Europe mean life expectancy are the same
+# H1: Africa and Europe mean life expectancy are different
+
+gapminder %>% 
+  filter(continent %in% c("Africa", "Europe")) %>%
+  t.test(lifeExp ~ continent, data = ., 
+         alternative = "two.sided") # data = .by using pipe, it wants to place gapminder as the first argument to t.test
+
+# p-value is < 2.2e-16
+# we can reject the null hypothesis
+# we accept the alternative hypothesis
+```
+
+---
+
+``` {r Visualize the two continents}
+# Filter data for Africa and Europe
+filtered_data <- gapminder %>%
+  filter(continent %in% c("Africa", "Europe"))
+
+# Calculate mean life expectancy for each continent
+mean_lifeExp <- filtered_data %>%
+  group_by(continent) %>%
+  summarise(mean_lifeExp = mean(lifeExp))
+
+# Create density plot
+ggplot(filtered_data, aes(x = lifeExp, fill = continent)) +
+  geom_density(alpha = 0.5) +
+  geom_vline(data = mean_lifeExp, aes(xintercept = mean_lifeExp, color = continent), 
+             linetype = "dashed", linewidth=1) +
+  labs(title = "Density Plot of Life Expectancy",
+       x = "Life Expectancy",
+       y = "Density",
+       fill = "Continent",
+       color = "Mean Life Expectancy") +
+  theme_minimal()
+
+```
+
+---
+
+```{r t-test, difference of means}
+# H0: Ireland has a mean life expectancy the same as Switzerland
+# H1: Ireland mean life expectancy is less
+
+gapminder %>% 
+  filter(country %in% c("Ireland", "Switzerland")) %>% 
+  t.test(lifeExp ~ country, data = .,
+         alternative = "less",
+         conf.level = 0.95)
+
+# p-value is 0.05835
+# we cannot reject the null hypothesis
+# we reject the alternative hypothesis
+
+```
+
+---
+
+``` {r Visualize the two countries}
+# Filter data for Ireland and Finland
+filtered_data <- gapminder %>%
+  filter(country %in% c("Ireland", "Switzerland"))
+
+# Calculate mean life expectancy for each country
+mean_lifeExp <- filtered_data %>%
+  group_by(country) %>%
+  summarise(mean_lifeExp = mean(lifeExp))
+
+# Create density plot with x-axis set from 50 to 90
+ggplot(filtered_data, aes(x = lifeExp, fill = country)) +
+  geom_density(alpha = 0.5) +
+  geom_vline(data = mean_lifeExp, aes(xintercept = mean_lifeExp, color = country), 
+             linetype = "dashed", linewidth = 1) +
+  scale_x_continuous(limits = c(50, 90)) +  # Manually sets x-axis limits
+  labs(title = "Density Plot of Life Expectancy in Ireland & Switzerland",
+       x = "Life Expectancy",
+       y = "Density",
+       fill = "Country",
+       color = "Mean Life Expectancy") +
+  theme_minimal()
+```
+
+---
+
+```{r t-test, paired}
+# H0: The mean life expectancy for Africa is the same in 1957 and 2007
+# H1: They are different
+
+
+#gapminder %>% 
+#  filter(year %in% c(1957, 2007) &
+#           continent == "Africa") %>% 
+#  mutate(year = factor(year, levels = c(2007, 1957))) %>% 
+#  t.test(lifeExp ~ year, data = .,
+#         paired = TRUE)
+
+# this doesn't work
+
+# Filter for African countries in 1957 and 2007
+paired_data <- gapminder %>%
+  filter(continent == "Africa" & year %in% c(1957, 2007)) %>%
+  group_by(country) %>%
+  filter(n() == 2) %>%  # Keep only countries with both years
+  ungroup() %>%
+  arrange(country, year)  # Ensure correct pairing order
+
+# Perform paired t-test
+ 
+t.test(gapminder$lifeExp[gapminder$year == 2007], gapminder$lifeExp[gapminder$year == 1957], paired = TRUE, data = paired_data)
+
+# p-value is < 2.2e-16
+# we reject the null hypothesis
+# we accept the alternative hypothesis
+```
+
+---
+
+```{r}
+# Filter data for Africa in 1957 and 2007
+africa_data <- gapminder %>%
+  filter(continent == "Africa" & year %in% c(1957, 2007)) %>%
+  mutate(year = factor(year))  # Convert year to a factor for plotting
+
+# Calculate mean life expectancy for each year
+mean_lifeExp <- africa_data %>%
+  group_by(year) %>%
+  summarise(mean_lifeExp = mean(lifeExp))
+
+# Create density plot
+ggplot(africa_data, aes(x = lifeExp, fill = year)) +
+  geom_density(alpha = 0.5) +  # Density plot with transparency
+  geom_vline(data = mean_lifeExp, aes(xintercept = mean_lifeExp, color = year), 
+             linetype = "dashed", linewidth = 1) +  # Add dashed lines for mean values
+  labs(title = "Density Plot of Life Expectancy in Africa (1957 vs 2007)",
+       x = "Life Expectancy",
+       y = "Density",
+       fill = "Year",
+       color = "Mean Life Expectancy") +
+  theme_minimal()
+```
+
+---
+
+H0: The average height of male and female Star Wars characters is the same
+H1: The average height is not the same
+
+```{r T-Test with Star Wars Database, echo=FALSE, message=FALSE, warning=FALSE}
+
+my_data <- starwars %>% 
+  select(sex, height) %>% 
+  filter(sex %in% c("male", "female")) %>% 
+  drop_na(height)
+
+t.test(height ~ sex, data = my_data)
+# The average heights of female and male characters is not the same, but the p-value is > 0.05 (0.2431)
+# We cannot reject the null hypothesis. The difference we are seeing could just be by chance
+
+# same result using pipe operator in tidyverse
+# starwars %>% 
+#   select(sex, height) %>% 
+#   filter(sex %in% c("male", "female")) %>% 
+#   drop_na(height) %>% 
+#   t.test(height ~ sex, data = .)
+  
+
+```
+

@@ -1,0 +1,73 @@
+---
+title: "Chi Squared"
+author: "Jason Pemberton"
+date: "2025-04-01"
+output: html_document
+---
+
+```{r Load Libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+library(patchwork)
+```
+
+---
+Chi Squared:
+1. Goodness of Fit
+2. Test of Independence 
+
+Used for categorical data
+
+```{r Load iris data}
+
+head(iris)
+```
+---
+
+```{r}
+flowers <- iris %>% 
+  mutate(size = cut(Sepal.Length,
+                    breaks = 3,
+                    labels = c("Small", "Medium", "Large"))) %>% 
+  select(Species, size)
+
+table(flowers)
+```
+
+---
+H0 (Null Hypothesis): The proportion of flowers that are small, medium and large are equal
+H1 (Alt. Hypothesis): The proportion of flowers that are small, medium and large are not equal  
+```{r Chi Squared Goodness of Fit Test}
+flowers %>% 
+  select(size) %>% 
+  table() %>% 
+  chisq.test()
+
+# same as running chisq.test(table(flowers$size))
+# p = 0.000000667
+# The probability of the sample data providing a difference of this magnitude
+# or more is < 0.05, so we reject the null hypothesis. The proportions are not equal
+```
+
+---
+H0: The variables are independent, there is no relationship between the variables
+H1: The variables are not independent.
+Knowing the value of one variable does not help predict the value of another variable
+```{r Chi Squared Test of Independence}
+# chisq.test(flowers)
+
+flowers %>% 
+  table() %>% 
+  chisq.test()
+
+my_test <- flowers %>% 
+  table() %>% 
+  chisq.test()
+
+attributes(my_test)
+my_test$statistic
+my_test$p.value
+
+# p = 2.2e-16
+# We can reject the null hypothesis, they are dependent
+```
+

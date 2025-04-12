@@ -5,12 +5,12 @@ date: "2025-03-21"
 output: html_document
 ---
 
-1.  What drives user conversion?
+## What drives user conversion?
 
 Business insight: Identify the key factors influencing whether a user converts.\
 **Approach:**
 
--   Use Logistic Regression or Random Forest Classifier to model the relationship between the predictors ***subscribing***, ***dietary_pre***, ***meal_type***, ***location***, ***age_group***) and the target variable ***converted***
+-   Use Logistic Regression or Random Forest Classifier to model the relationship between the predictors ***subscribing_channel***, ***dietary_preference***, ***meal_type***, ***location***, ***age_group***) and the target variable ***converted***
 
 -   Evaluate feature importance to understand the weight of each factor on conversions.
 
@@ -18,7 +18,7 @@ Business insight: Identify the key factors influencing whether a user converts.\
 
 Output: A ranked list of factors that drive conversions
 
----
+------------------------------------------------------------------------
 
 STEP 1: Load Libraries
 
@@ -34,6 +34,9 @@ STEP 2: Load Data
 
 # Load dataset
 df <- read.csv("C:/Users/jason/OneDrive/SAIT/SAIT Instructor/2025-2026/WINTER 2025 - COURSE - PROJ406/Team 7/data/foodfusion.csv")
+
+# Load dataset
+df2 <- read.csv("C:/Users/jason/OneDrive/SAIT/SAIT Instructor/2025-2026/WINTER 2025 - COURSE - PROJ406/Team 7/data/foodfusion.csv")
 ```
 
 STEP 3: Data Preparation
@@ -41,8 +44,13 @@ STEP 3: Data Preparation
 ```{r Select Necessary Columns and Prepare for Model, echo=TRUE, message=FALSE, warning=FALSE}
 # Preprocess data
 df <- df %>%
-  select(-user_id, -date_served)  # Drop unnecessary columns
+  select(-user_id, -date_served, -is_retained)  # Drop unnecessary columns
 df$converted <- as.factor(df$converted)  # Ensure the target is a factor
+
+# Preprocess data
+df2 <- df2 %>%
+  select(-user_id, -date_served)  # Drop unnecessary columns
+df2$converted <- as.factor(df2$converted)  # Ensure the target is a factor
 ```
 
 STEP 4: Data Partition
@@ -187,105 +195,68 @@ importance(rf_model)
 varImpPlot(rf_model)
 ```
 
----
+------------------------------------------------------------------------
 
-**ADDITIONAL**
+## What drives user retention?
+
+Business insight: Identify the key factors influencing whether a user stays with FoodFusion.
+
+\
+**Approach:**
+
+-   Use GLM to model the relationship between the predictors ***subscribing_channel***, ***dietary_preference***, ***meal_type***, ***location***, ***age_group***) and the target variable ***is_retained***
+
+-   Evaluate feature importance to understand the weight of each factor on retention.
+
+-   Provide actionable insights, such as targeting specific user segments for better retention rates.
+
+Output: A ranked list of factors that drive retention
 
 #### Logistic Regression (GLM):
 
 -   Works well with **encoded categorical data**.
 
--    Provides **coefficients** to explain which features (e.g., subscribing channel) are most important.
+-   Provides **coefficients** to explain which features (e.g., subscribing channel) are most important.
 
-<!-- -->
-
--    Output: Probability of **"is_retained" = TRUE** for each customer.
+-   Output: Probability of **"is_retained" = TRUE** for each customer.
 
 ```{r Simple GLM}
 
-df$is_retained <- as.factor(df$is_retained)  # Ensure target is categorical
-glm_model <- glm(is_retained ~ ., data = df, family = "binomial")  # Logistic regression
+#df$is_retained <- as.factor(df$is_retained)  # Ensure target is categorical
+glm_model <- glm(is_retained ~ ., data = df2, family = "binomial")  # Logistic regression
 summary(glm_model)  # View significant predictors
 ```
 
----
+------------------------------------------------------------------------
 
 **Interpretation of Significant Variables**
 
 **Subscribing Channel (House Ads)**
 
--    **Estimate: 0.2153, p = 0.0289** (*Significant, p \< 0.05*)
+-   **Estimate: 0.2153, p = 0.0289** (*Significant, p \< 0.05*)
 
--    Interpretation: Users who subscribed via House Ads are significantly more likely to be retained compared to the baseline subscribing channel.
+-   Interpretation: Users who subscribed via House Ads are significantly more likely to be retained compared to the baseline subscribing channel.
 
 **Dietary Preference (Keto)**
 
--    **Estimate: -0.2107, p = 0.0178** (*Significant, p \< 0.05*
+-   **Estimate: -0.2107, p = 0.0178** (*Significant, p \< 0.05)*
 
--    Interpretation: Keto users are significantly *less* likely to be retained compared to the baseline dietary preference.
+-   Interpretation: Keto users are significantly *less* likely to be retained compared to the baseline dietary preference.
 
 **Dietary Preference (Vegan)**
 
--    **Estimate: -0.1748, p = 0.0510** (*Marginally Significant, p \~ 0.05*)
+-   **Estimate: -0.1748, p = 0.0510** (*Marginally Significant, p \~ 0.05*)
 
--    Interpretation: Vegan users might also be less likely to be retained, but it's borderline.
+-   Interpretation: Vegan users might also be less likely to be retained, but it's borderline.
 
----
+------------------------------------------------------------------------
 
 #### **Recommendations for FoodFusion**
 
-1.   **Optimize House Ads** → Since it significantly increases retention, FoodFusion should invest more in this channel.
+1.  **Optimize House Ads** → Since it significantly increases retention, FoodFusion should invest more in this channel.
 
-2.   **Investigate Keto Dieters** → They seem less likely to be retained. Maybe they need different marketing, better meal options, or a different onboarding approach.
+2.  **Investigate Keto Dieters** → They seem less likely to be retained. Maybe they need different marketing, better meal options, or a different onboarding approach.
 
-3.   **Ignore Insignificant Variables for Now** → Since age, location, and other meal types don’t have a strong effect, there’s no need to focus marketing efforts there.
+3.  **Ignore Insignificant Variables for Now** → Since age, location, and other meal types don’t have a strong effect, there’s no need to focus marketing efforts there.
 
----
-
-#### Decision Tree:
-
--    Works **without encoding** categorical data.
-
--    Outputs a tree structure showing how different factors affect retention.
-
-```{r}
-# Load Libraries
-library(rpart)
-library(rpart.plot)
-library(ROSE)
-
-# Prepare the data
-df$is_retained <- as.factor(df$is_retained)
-df_balanced <- ROSE(is_retained ~ ., data = df, seed = 123)$data
-
-# Build decision tree model
-tree_model <- rpart(is_retained ~ subscribing_channel + dietary_preference + meal_type + location + age_group, 
-                     data = df, method = "class", 
-                     control = rpart.control(cp = 0.01))  # Complexity parameter to avoid overfitting
-
-# Visualize the tree
-rpart.plot(tree_model, type = 3, extra = 104, fallen.leaves = TRUE)
-
-# Evaluate performance
-preds <- predict(tree_model, df, type = "class")
-conf_matrix <- table(Predicted = preds, Actual = df$is_retained)
-print(conf_matrix)
-
-```
-
-#### Random Forest:
-
--   Better Predictions, Less Overfitting
-
--    Works well for categorical data.
-
--    Can handle **complex relationships**.
-
--    Outputs **feature importance** to rank the most important factors for retention.
-
-```{r}
-df$is_retained <- as.factor(df$is_retained)  # Convert target to factor
-rf_model <- randomForest(is_retained ~ ., data = df, ntree = 100)
-print(rf_model)
-importance(rf_model)  # View most important features
-```
+------------------------------------------------------------------------

@@ -1,0 +1,108 @@
+---
+title: "Visualization"
+author: "Jason Pemberton"
+date: "2025-03-29"
+output: html_document
+---
+
+```{r Load Libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+library(ggridges)
+```
+
+---
+
+Data
+Mapping
+Geometry
+
+```{r}
+gapminder %>% 
+  filter(continent %in% c("Africa", "Europe")) %>% 
+  filter(gdpPercap < 30000) %>% 
+  ggplot(aes(
+    x = gdpPercap,
+    y = lifeExp,
+    size = pop,
+    color = year)) +
+  geom_point() + 
+  facet_wrap(~continent) +
+  scale_color_viridis_c(option = "plasma") +  # Options: "magma", "inferno", "plasma", "cividis"
+  labs(
+    title = "Life Expectency Explained by GDP Per Capita",
+    x = "GDP Per Capita",
+    y = "Life Expectency"
+  )
+```
+
+---
+
+```{r message=FALSE, warning=FALSE, Lincoln Weather Density Ridges message=FALSE}
+
+lincoln_weather <- read_csv("data/lincoln-weather.csv")
+
+# Convert Month to an ordered factor
+lincoln_weather$Month <- factor(lincoln_weather$Month, 
+                                levels = rev(c("January", "February", "March", "April", "May", "June", 
+                                           "July", "August", "September", "October", "November", "December")))
+
+# Create density ridges plot
+ggplot(lincoln_weather, aes(x = `Mean Temperature [F]`, y = Month, fill = Month)) +
+  geom_density_ridges(scale = 1.2, alpha = 0.5) +
+  scale_fill_viridis_d(option = "C", guide = "none") +  # Hide legend for cleaner plot
+  labs(
+    title = "Lincoln Weather Density Ridges",
+    x = "Temperature (°F)",
+    y = "Month"
+  ) +
+  theme_minimal()
+
+```
+
+---
+
+```{r Star Wars Density Plot, echo=FALSE, message=FALSE, warning=FALSE}
+
+# Density Plots
+starwars %>% 
+  drop_na(height) %>% 
+  filter(sex %in% c("male", "female")) %>% 
+  ggplot(aes(height,
+             color = sex,
+             fill = sex)) +
+  geom_density(alpha = 0.2) +
+  theme_bw() +
+  labs(title = "Height of Star Wars Characters")
+
+```
+
+---
+
+```{r Star Wars Scatterplot, echo=FALSE, message=FALSE, warning=FALSE}
+
+# Density Plots
+starwars %>%
+  filter(mass < 200) %>% 
+  ggplot(aes(height, mass, color = sex)) +
+  geom_point(size = 5, alpha = 0.5) +
+  theme_bw() +
+  labs(title = "Height vs Mass of Star Wars Characters")
+
+```
+
+---
+
+```{r Star Wars Smoothed, echo=FALSE, message=FALSE, warning=FALSE}
+
+# Density Plots
+starwars %>% 
+  filter(mass < 200) %>% 
+  ggplot(aes(height, mass, color = sex)) +
+  geom_point(size = 5, alpha = 0.5) +
+  geom_smooth() +
+  facet_wrap(~sex) +
+  theme_bw() +
+  labs(title = "Height vs Mass of Star Wars Characters")
+
+# gray bands = standard error, set SE = False to turn off within the () of geom_smooth
+```

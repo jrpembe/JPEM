@@ -1,0 +1,67 @@
+---
+title: "Pivot"
+author: "Jason Pemberton"
+date: "2025-04-07"
+output: html_document
+---
+
+```{r Load Libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+library(gapminder)
+```
+
+---
+
+```{r Convert Long to Wide}
+
+head(gapminder) %>% 
+  select(country, year, lifeExp)
+# Original data is in long format
+
+data <- select(gapminder, country, year, lifeExp)
+
+wide_data <- data %>% 
+  pivot_wider(names_from = year, values_from = lifeExp)
+
+View(wide_data)
+```
+
+---
+
+```{r Convert Wide to Long}
+
+long_data <- wide_data %>% 
+  pivot_longer(2:13,
+               names_to = "year",
+               values_to = "lifeExp")
+
+View(long_data)
+```
+
+---
+
+```{r Pivot Wider - Orange Dataset, echo=FALSE, message=FALSE, warning=FALSE}
+
+names(Orange)
+View(Orange)
+
+orange_wide_data <- Orange %>% 
+  pivot_wider(names_from = age, values_from = circumference)
+
+View(orange_wide_data)
+```
+
+---
+
+```{r Pivot Longer, echo=FALSE, message=FALSE, warning=FALSE}
+# return wide data back to long
+
+orange_long_data <- orange_wide_data %>% 
+  pivot_longer(2:8,
+               names_to = "age",
+               values_to = "circumference")
+
+View(orange_long_data)
+
+```
+
