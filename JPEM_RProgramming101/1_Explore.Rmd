@@ -7,17 +7,21 @@ output: html_document
 
 ```{r Load Libraries, message=FALSE, warning=FALSE, include=FALSE}
 library(tidyverse)
+library(car)
+data()
 ```
 
 ---
 
 ```{r examining your data, message=FALSE, warning=FALSE, include=FALSE}
-dim(starwars) # how many rows and columns are in your dataframe
+df <- starwars
+
+dim(mpg) # how many rows and columns are in your dataframe
 #head(starwars)
 
 str(starwars) # returns all variables, data types and a snapshot of the data
 
-glimpse(starwars) # cleaner than str
+glimpse(mpg) # cleaner than str
 
 names(starwars) # return variable headers/names
 
@@ -25,11 +29,17 @@ length(starwars) # how many variables
 
 class(starwars$hair_color) # like python "type"
 
-unique(starwars$hair_color) # use attach(starwars) to avoid having to type the df name
+df$
+
+#unique(df$hair_color) # use attach(starwars) to avoid having to type the df name
 
 View(sort(table(starwars$hair_color), decreasing = TRUE)) # frequency table of values
 
 barplot(sort(table(starwars$hair_color), decreasing = TRUE)) # frequency table of values
+```
+
+```{r}
+
 ```
 
 ---

@@ -1,0 +1,163 @@
+---
+title: "Multiple Regression - Part 2"
+author: "Jason Pemberton"
+format: html
+editor: visual
+---
+
+## Multiple Regression - Adding Variables
+
+Explaining variations in your response variable (dependent) cause by two or more predictor variables (independent) .
+
+```{r}
+#| label: Load Libraries
+#| message: false
+#| warning: false
+#| include: false
+library(tidyverse)
+library(palmerpenguins)
+```
+
+### Adding a numeric variable: Trees
+
+```{r}
+#| label: Visualize Trees
+#| echo: true
+#| message: false
+#| warning: false
+trees %>% 
+  ggplot(aes(Girth, Volume, colour = Height)) +
+  geom_point() +
+  geom_smooth(method = lm, se =F) +
+  theme_bw() +
+  labs(
+    title = "Tree Volume Explained by Girth and Height"
+    )
+
+tree_model <- lm(Volume ~Girth + Height, data=trees)
+summary(tree_model)
+# Girth coefficient = 4.7082, for every incremental change in Girth, Volume increases by 4.7082
+# Height coefficient = 0.3393, for every incremental change in Height, Volume increases by 0.3393
+
+# Both Girth and Height are statistically significant. Together they explain 94.4% of the variation in tree Volume
+```
+
+### Simple Linear Regression: Cars
+
+Starting with a simple linear regression to see if engine size affects a vehicle's fuel economy.
+
+```{r}
+#| label: Visualize MPG Simple Linear Regression
+#| echo: true
+#| message: false
+#| warning: false
+mpg %>% 
+  ggplot(aes(displ, hwy)) +
+  geom_jitter() +
+  geom_smooth(method = lm, se = F) +
+  theme_bw() +
+  labs(
+    title = "Highway Fuel Efficiency Explained by Engine Size",
+    x = "Engine Size",
+    y = "Highway Fuel Efficiency"
+  )
+
+car_model <- lm(hwy ~ displ, data=mpg)
+summary(car_model)
+
+# For every increase in engine size, we see a drop in fuel economy of -3.5306.
+```
+
+### Adding a Categorical Variable: Cars
+
+Combining front and rear wheel drive vehicles into a category "fwd".
+
+```{r}
+#| label: Visualize MPG Multiple Linear Regression
+#| echo: true
+#| message: false
+#| warning: false
+mpg %>% 
+  mutate(drv = fct_recode(drv, "2" = "f", "2" = "r")) %>% 
+  ggplot(aes(displ, hwy, colour = drv)) +
+  geom_point() +
+  geom_smooth(method = lm, se = F) +
+  theme_bw() +
+  labs(
+    title = "Highway Fuel Ecfficiency Explained by Engine Size",
+    x = "Engine Size",
+    y = "Highway Fuel Efficiency",
+    colour = "Drive"
+  )
+
+# Create linear model
+mpg %>%
+  mutate(drv = fct_recode(drv, "2" = "f", "2" = "r")) %>% 
+  lm(hwy ~ displ + drv, data = .) %>% 
+  summary()
+
+# the model coefficient for drive shows "drv2". R automatically # makes one of the categories (fwd or rwd) the reference for the # other. If you keep all other variables constant, moving from a # 4wd to a 2wd will improve engine efficiency by 4.9486
+
+# By default it is choosing them in alphabetical order but you 
+# can control that
+
+# 73% of the change in highway fuel efficiency can be explained by engine size and drive type
+```
+
+### Simple Linear Regression: Penguins
+
+Starting with a simple linear regression to see if penguin bill depth explains the changes we see in bill length.
+
+```{r}
+#| label: Visualize Palmer Penguins, Linear Regression
+#| echo: true
+#| message: false
+#| warning: false
+penguins %>% 
+  ggplot(aes(bill_depth_mm, bill_length_mm)) +
+  geom_point() +
+  geom_smooth(method = lm, se = F) +
+  theme_bw() +
+  labs(
+    title = "Penguin Bill Length Explained by Bill Depth",
+    x = "Bill Depth",
+    y = "Bill Length"
+    )
+
+# create linear model
+penguins %>%
+  lm(bill_length_mm ~ bill_depth_mm, data = .) %>% 
+  summary()
+
+# Bill depth on its own, only explains about 5% of the variation we see in bill length.
+
+# When all three species are combined, for every increase (mm) in bill depth, we see a decrease in bill length of -0.6498 mm.
+```
+
+### Adding a Categorical Variable: Penguins
+
+```{r}
+#| label: Visualize Palmer Penguins, Multiple Regression
+#| echo: true
+#| message: false
+#| warning: false
+penguins %>% 
+  ggplot(aes(bill_depth_mm, bill_length_mm, color = species)) +
+  geom_point() +
+  geom_smooth(method = lm, se = F) +
+  theme_bw() +
+  labs(
+    title = "Penguin Bill Length Explained by Bill Depth",
+    x = "Bill Depth",
+    y = "Bill Length"
+    )
+
+penguins %>%
+  lm(bill_length_mm ~ bill_depth_mm + species, data = .) %>% 
+  summary()
+
+# By adding the categorical variable "species", we see 
+# significant improvement in our model performance. 
+# our model now shows the combination of bill depth and 
+# species explains 78.7 % of the variation in bill length.
+```

@@ -1,0 +1,24 @@
+---
+title: "Group and Summarize"
+author: "Jason Pemberton"
+date: "2025-04-15"
+output: html_document
+---
+
+```{r Load Libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+```
+
+---
+
+```{r Group By, echo=FALSE, message=FALSE, warning=FALSE}
+msleep %>%  
+  drop_na(sleep_rem, vore) %>%  
+  group_by(vore) %>% 
+  summarise(`Average Total Sleep` = round(mean(sleep_total),1),
+            `Maximum REM Sleep` = max(sleep_rem)) %>%  
+  arrange(desc(`Average Total Sleep`)) %>%  
+  view
+  
+```
+

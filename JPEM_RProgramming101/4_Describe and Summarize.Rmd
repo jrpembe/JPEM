@@ -21,7 +21,7 @@ library(tidyverse)
 glimpse(msleep)
 ```
 
----
+------------------------------------------------------------------------
 
 ```{r Statistics}
 min(msleep$awake)
@@ -35,7 +35,7 @@ var(msleep$awake)
 summary(msleep) # returns summary of all variables in your dataframe
 ```
 
----
+------------------------------------------------------------------------
 
 ```{r Summarize your data}
 msleep %>% 
@@ -43,7 +43,7 @@ msleep %>%
   summary
 ```
 
----
+------------------------------------------------------------------------
 
 ```{r Creating a summary table}
 
@@ -62,7 +62,7 @@ msleep %>%
   View()
 ```
 
----
+------------------------------------------------------------------------
 
 ```{r Contingency Tables, Two Categorical Variables, message=FALSE, warning=FALSE}
 

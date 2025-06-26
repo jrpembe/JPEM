@@ -1,0 +1,90 @@
+---
+title: "Quarto - Version 1"
+author: "Jason Pemberton"
+format: html
+editor: visual
+bibliography: references.bib
+---
+
+## Quarto Demonstration
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r Load Libraries, message=FALSE, warning=FALSE}
+library(tidyverse)
+```
+
+------------------------------------------------------------------------
+
+```{r Star Wars Visualization, message=FALSE, warning=FALSE}
+#| echo: true
+#| label: fig-starwars
+#| fig.cap: "Relationship Between Height and Mass of Star Wars Characters"
+
+starwars %>% 
+  filter(mass < 100) %>% 
+  drop_na(gender) %>% 
+  ggplot(aes(mass, height)) +
+  geom_point(size = 3, alpha = 0.5,
+             aes(colour = gender)) +
+  geom_smooth() +
+  theme_bw() +
+  labs(
+    title = "Height vs Mass of Star Wars Characters",
+    x = "mass (kg)",
+    y = "height (cm)",
+    colour = "Gender"
+  )
+  
+```
+
+## Including Code in Text:
+
+The average height of Star Wars characters is `r round(mean(starwars$height, na.rm = TRUE)/100, 2)` meters.\
+The average mass of Star Wars characters is `r round(mean(starwars$mass, na.rm = TRUE), 2)` kg.
+
+```{r Star Wars Visualization 2, message=FALSE, warning=FALSE}
+#| echo: true
+#| label: fig-starwars2
+#| fig.cap: "Density Plot of Height for Humans and Droids"
+
+starwars %>%
+  filter(species %in% c("Human", "Droid")) %>%
+  drop_na(height) %>%
+  ggplot(aes(x = height, fill = species)) +
+  geom_density(alpha = 0.5) +
+  theme_bw() +
+  labs(
+    title = "Density Plot of Height for Humans and Droids",
+    x = "Height (cm)",
+    y = "Density",
+    fill = "Species"
+  )
+  
+```
+
+## Cross Referencing:
+
+Here is a reference to @fig-starwars
+
+Here is a reference to @fig-starwars2
+
+## Including a callout
+
+::: callout-warning
+## Warning - remember to take an umbrella when it rains
+:::
+
+{{< page break >}}
+
+## Including a bibliography
+
+[@Rattan2023; @chandler1995; @conclusi2021]
+
+[@chandler1995]
+
+[@thebage]

@@ -1,0 +1,108 @@
+---
+title: "Loops - Star Wars"
+author: "Jason Pemberton"
+format: html
+editor: visual
+---
+
+```{r}
+#| label: Load Libraries
+#| message: false
+#| warning: false
+#| include: false
+library(tidyverse)
+```
+
+## For Loops - Part 1
+
+for loop using numeric range
+
+```{r}
+#| label: For Loops
+#| echo: true
+#| message: false
+#| warning: false
+
+for (i in 1:5){
+  print(starwars$name[i])
+}
+
+
+# concatenating strings using paste
+for (i in 1:5) {
+  print(paste(starwars$name[i], "from", starwars$homeworld[i]))
+}
+
+```
+
+## For Loops - Part 2
+
+for loop using length of a vector
+
+```{r}
+
+for (i in 1:length(starwars$height)) {
+  print(starwars$height[i])
+}
+```
+
+## For Loops - Part 3
+
+assigning loop results to an object
+
+```{r}
+# Create an empty vector
+tallness <- vector(
+  mode = "numeric",
+  length = 5
+)
+
+# Add data points to the new vector
+for (i in 1:5){
+  tallness[i] <- starwars$height[i]/100
+}
+
+# Look at new vector
+tallness
+```
+
+## For Loops - Part 4
+
+breaking a for loop
+
+```{r}
+for (x in starwars$name){
+  print(x)
+  if(x == "Darth Vader") {
+    break
+  }
+}
+```
+
+## For Loops - Part 5
+
+next - skipping a data point
+
+```{r}
+for (x in starwars$name){
+  if(x == "C-3PO") { 
+    next
+  }
+  print(x)
+  if (x == "Darth Vader"){
+    break
+  }
+}
+```
+
+## For Loops - Part 6
+
+concatenate elements of text
+
+```{r}
+for (i in 1:5){
+  cat("The height of", starwars$name[i], "is",
+      tallness[i], "meters \n"
+      )
+}
+```

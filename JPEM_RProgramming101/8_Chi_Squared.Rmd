@@ -8,6 +8,7 @@ output: html_document
 ```{r Load Libraries, message=FALSE, warning=FALSE, include=FALSE}
 library(tidyverse)
 library(patchwork)
+library(forcats)
 ```
 
 ---
@@ -69,5 +70,46 @@ my_test$p.value
 
 # p = 2.2e-16
 # We can reject the null hypothesis, they are dependent
+```
+
+---
+
+```{r GSS_CAT Goodness of Fit}
+my_data <- gss_cat %>% 
+  select(marital) %>%
+  filter(marital %in% c("Married",
+                         "Never married",
+                         "Divorced")) %>% 
+  mutate(marital = fct_drop(marital))
+
+my_table <- table(my_data)
+my_table
+
+# Use your prepared data
+my_data <- gss_cat %>% 
+  select(marital) %>%
+  filter(marital %in% c("Married", "Never married", "Divorced")) %>% 
+  mutate(marital = fct_drop(marital))
+
+# Create a column chart
+my_data %>%
+  count(marital) %>% # Count occurrences of each marital category
+  ggplot(aes(x = marital, y = n, fill = marital)) +
+  geom_col() +
+  labs(
+    title = "Count of Marital Status Categories",
+    x = "Marital Status",
+    y = "Count"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none") # Remove the legend for simplicity
+
+# H0: The proportions of Married, Never Married, and Divorced is the same in our data
+# H1: The proportions are different
+
+# Applying chi squared test to a table
+chisq.test(my_table)
+
+# Our p-value is < 0.05, we reject the null hypothesis, they are not equal.
 ```
 

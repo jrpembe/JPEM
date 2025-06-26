@@ -1,0 +1,67 @@
+---
+title: "Text Manipulation with stringr"
+author: "Jason Pemberton"
+format: html
+editor: visual
+---
+
+## Text Manipulation with ***stringr***
+
+```{r}
+#| label: Load Libraries
+#| message: false
+#| warning: false
+#| include: false
+library(tidyverse)
+library(gtExtras)
+
+head(iris)
+```
+
+```{r}
+#| label: combining text
+#| echo: true
+#| message: false
+#| warning: false
+# Using str_c() to combine text data
+first_name <- "John"
+last_name <- "Smith"
+
+full_name <- str_c(first_name, " ", last_name) # or add sep = " " as third argument
+full_name
+
+
+# Using str_c() to create a vector
+first_names <- c("John", "Steve")
+last_names <- c("Matthews", "Stevens")
+
+full_names <- str_c(first_names, last_names, sep = " ")
+full_names
+
+# convert vector to data frame
+names <- as.data.frame(
+  str_c(first_names, last_names, sep = " ")
+)
+
+names
+```
+
+```{r}
+#| label: IRIS
+#| echo: true
+#| message: false
+#| warning: false
+
+iris %>% 
+  select(Species, Sepal.Length) %>% 
+  mutate(Description = 
+           str_c(Species,
+                 ": ",
+                 Sepal.Length,
+                 " cm")) %>% 
+  gt() %>% 
+  tab_header(title = "Iris Data with Description") %>% 
+  cols_align(align = "center") %>% 
+  gt_theme_pff()
+
+```

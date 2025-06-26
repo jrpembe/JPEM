@@ -1,0 +1,31 @@
+---
+title: "Quarto - Tips & Tricks"
+author: "Jason Pemberton"
+format: docx
+editor: visual
+---
+
+## Multiple Regression
+
+Similar to linear regression, but instead of predicting the outcome variable's values based on one explanatory variable, it predicts based on two or more explanatory variables.
+
+```{r}
+#| label: Load Library
+#| message: false
+#| warning: false
+#| include: false
+library(tidyverse)
+```
+
+```{r}
+#| label: Visualize Tree Data
+#| echo: true
+#| message: false
+#| warning: false
+trees %>% 
+  ggplot(aes(Girth, Volume, colour = Height)) +
+  geom_point() +
+  geom_smooth(method = lm, se = F) +
+  theme_bw() +
+  labs(title = "Tree Volume Explained by Girth and Height")
+```

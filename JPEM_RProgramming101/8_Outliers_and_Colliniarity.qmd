@@ -1,0 +1,68 @@
+---
+title: "Outliers and Colliniarity"
+author: "Jason Pemberton"
+format: html
+editor: visual
+---
+
+Regression Model Assumptions:
+
+1.  A linear relationship exists between our predictor and our response variables.
+2.  The residuals follow a normal distribution.
+3.  Residuals are homoscedastic. There should be no obvious patterns in the residuals.
+4.  Observations are independent of one another.
+
+## How to Deal with Outliers
+
+**Outliers** are observations that significantly deviate from the overall pattern of the dataset.
+
+**Leverage** refers to how much influence a data point has on your model.
+
+## Load Libraries
+
+```{r}
+#| label: Load Libraries
+#| message: false
+#| warning: false
+#| include: false
+library(tidyverse)
+library(carData)
+```
+
+plot(model, which = #)
+
+1.  Residuals vs Fitted
+2.  Q-Q Plot
+3.  Scale-Location
+4.  Cook's Distance
+5.  Residuals vs Leverage
+6.  Cook's Distance vs Leverage
+
+```{r}
+#| label: Visualize - Salaries
+#| echo: true
+#| message: false
+#| warning: false
+model <- lm(salary ~ yrs.since.phd, data=Salaries)
+
+plot(model, which = 5)
+```
+
+### Collinearity
+
+Applies t o multiple regression (where there are multiple predictors). The predictor variables should not be perfectly correlated with each other.
+
+Looking at mtcars dataset with explanatory variables horsepower (hp) and enginer size (disp) vs fuel economy (mpg).
+
+```{r}
+#| label: Correlation Matrix
+#| echo: true
+#| message: false
+#| warning: false
+mtcars %>%
+  dplyr::select(mpg, disp, hp) %>%
+  cor() %>%
+  round(2)
+```
+
+In this example we want to see if a vehicle's engine size (disp) and horsepower (hp) affect its fuel economy. The correlation matrix shows a strong negative correlation. Fuel economy decreases as engine size increase, and fuel economy decreases as a vehicle's horsepower increases. However, Engine Size and Horsepower have a strong correlation to one another. This suggests there is potential collinearity in our predictor variables.

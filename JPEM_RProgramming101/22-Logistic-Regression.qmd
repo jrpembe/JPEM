@@ -1,0 +1,58 @@
+---
+author: "Jason Pemberton"
+format: 
+  html:
+    code-fold: true
+    toc: true
+    toc-location: left
+    theme: cosmo
+---
+
+```{r}
+#| message: false
+#| warning: false
+#| include: false
+library(tidyverse)
+```
+
+## Logistic Regression
+
+### What is Logistic Regression?
+
+::: callout.red-bg
+Logistic regression is a statistical method used to model and analyze datasets where the outcome variable is binary (e.g. "yes/no", or "male/female") and predictor variables are those believed to either influence, predict, or explain the outcome.
+:::
+
+### Single Numeric Predictor
+
+::: panel-tabset
+## Distribution
+
+## Probability
+:::
+
+### Single Categorical Predictor
+
+### 
+
+### Adding Variables
+
+### 
+
+### Confounding Variables
+
+### 
+
+### Effect Modifiers
+
+### 
+
+### Collinearity
+
+### 
+
+### Building the Model
+
+### 
+
+### Checking Model Assumptions

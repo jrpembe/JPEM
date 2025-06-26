@@ -1,0 +1,115 @@
+---
+title: "Multiple Regression"
+author: "Jason Pemberton"
+format: html
+editor: visual
+---
+
+## Multiple Regression
+
+Explaining variations in your response variable (dependent) cause by two or more predictor variables (independent) .
+
+```{r}
+#| label: Load Libraries
+#| message: false
+#| warning: false
+#| include: false
+library(tidyverse)
+```
+
+```{r}
+#| label: Visualize 1
+#| echo: true
+#| message: false
+#| warning: false
+
+mpg %>% 
+  mutate(drv = ifelse(drv %in% c("f", "r"), "2", drv)) %>% 
+  ggplot(aes(x = displ, y = hwy, color = drv)) +
+    geom_point(size = 3) +  # Scatter plot points
+    geom_smooth(method = "lm", se = FALSE) +  # Linear regression lines without error bars
+    labs(title = "Scatter Plot of Highway MPG vs Engine Displacement (by Drivetrain)",
+       x = "Engine Displacement (liters)",
+       y = "Highway Miles per Gallon (MPG)",
+       color = "Drivetrain") +
+  theme_minimal()
+
+```
+
+```{r}
+#| label: Visualize 2
+#| echo: true
+#| message: false
+#| warning: false
+mtcars %>%
+  ggplot(aes(x = wt, y = mpg, color = as.factor(am))) +
+  geom_point(size = 3) +  # Scatter plot points
+  geom_smooth(method = "lm", se = FALSE) +  # Linear regression lines without error bars
+  scale_color_discrete(labels = c("Automatic", "Manual")) +  # Recode the legend
+  labs(title = "Scatter Plot of MPG vs Weight (by Transmission)",
+       x = "Weight (1000 lbs)",
+       y = "Miles per Gallon (MPG)",
+       color = "Transmission") +
+  theme_minimal()
+
+# am has been added to the regression model using * rather 
+# than + to indicate that we want the second independent
+# variable plus any possible interactions.
+
+```
+
+## Residuals
+
+When testing whether there is a linear relationship between two variables we make the following assumptions:
+
+1.  We assume the relationship between the variables is "linear"
+2.  The residuals are normally distributed
+3.  We assume the residuals are homoskedastic. The spread of the residuals remains roughly the same regardless of the fitted values or predictors or independent variables (no obvious patterns)
+
+```{r}
+#| label: Visualize 3
+#| echo: true
+#| message: false
+#| warning: false
+mtcars %>%
+  ggplot(aes(x = wt, y = mpg)) +
+  geom_point() + # Scatterplot points
+  geom_smooth(method = "lm", se = FALSE) +
+  geom_segment(aes(xend = wt, yend = predict(lm(mpg ~ wt, data = mtcars))),color = "red") +
+  labs(title = "Vehicle Weight vs. MPG",
+       x = "Vehicle Weight (tonnes)",
+       y = "Miles per Gallon (mpg)")+
+  theme_bw()
+
+
+# Fit the linear model
+model <- lm(mpg ~ wt, data = mtcars)
+
+# Create a data frame with residuals and fitted values
+residuals_data <- mtcars %>%
+  mutate(fitted = model$fitted.values,
+         residuals = model$residuals)
+
+# Plot residuals vs fitted values
+ggplot(residuals_data, aes(x = fitted, y = residuals)) +
+  geom_point() + # Scatterplot points
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") + # Red dashed line at residuals zero
+  labs(title = "Residuals vs Fitted Values",
+       x = "Fitted Values",
+       y = "Residuals")
+
+
+# Create the histogram of residuals
+ggplot(residuals_data, aes(x = residuals)) +
+  geom_histogram(binwidth = 1, fill = "blue", color = "black", alpha = 0.7) + # Histogram styling
+  labs(title = "Histogram of Residuals",
+       x = "Residuals",
+       y = "Frequency") +
+  theme_minimal()
+
+
+# Create the Q-Q plot
+qqnorm(model$residuals, main = "Normal Q-Q Plot of Residuals", pch = 19, col = "blue")
+qqline(model$residuals, col = "red", lwd = 2) # Add a reference line
+
+```

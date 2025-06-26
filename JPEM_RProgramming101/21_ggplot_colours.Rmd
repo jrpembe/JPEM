@@ -1,0 +1,47 @@
+---
+title: "ggplot colours"
+author: "Jason Pemberton"
+date: "2025-04-18"
+output: html_document
+---
+
+```{r Load Libraries, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(RColorBrewer)
+```
+
+---
+
+Display colours in a palette
+
+```{r Display Colours, echo=FALSE, message=FALSE, warning=FALSE}
+display.brewer.all(colorblindFriendly = TRUE)
+```
+
+---
+
+Set Colour Palette 
+
+```{r Scale Color Brewer, echo=FALSE, message=FALSE, warning=FALSE}
+mpg %>% 
+  ggplot(aes(displ, hwy, colour = drv)) +
+  geom_jitter(size = 5, alpha = 0.3) +
+  scale_color_brewer(palette = "Set2") + # or you could set colour = "steelblue" within geom_jitter to control colour
+  theme_minimal()
+```
+
+---
+
+Control Colours Manually  
+
+```{r Scale Color Manual, echo=FALSE, message=FALSE, warning=FALSE}
+mpg %>% 
+  ggplot(aes(displ, hwy, colour = drv)) +
+  geom_jitter(size = 5, alpha = 0.3) +
+  scale_color_manual(values = c(
+    "4" = "green",
+    "f" = "red",
+    "r" = "blue")) +
+  theme_minimal()
+```
+

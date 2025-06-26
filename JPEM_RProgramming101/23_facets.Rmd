@@ -1,0 +1,97 @@
+---
+title: "facets"
+author: "Jason Pemberton"
+date: "2025-04-21"
+output: html_document
+---
+
+```{r Load Libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+library(gapminder)
+library(forcats)
+```
+
+---
+
+```{r Visualize all Continents}
+gapminder %>% 
+  filter(gdpPercap < 40000 &
+           continent != "Oceania") %>% 
+  ggplot(aes(gdpPercap, lifeExp, colour = continent)) +
+  geom_point(shape = "square",
+             alpha = 0.4,
+             size = 2) +
+  labs(
+    title = "Life Expectancy as a Function of Wealth",
+    x = "GDP per Capita",
+    y = "Life Expectancy"
+  ) +
+  theme_bw()
+```
+
+---
+
+```{r Visualize Each Continent Seperately, echo=FALSE, message=FALSE, warning=FALSE}
+gapminder %>% 
+  filter(gdpPercap < 40000 &
+           continent != "Oceania") %>% 
+  ggplot(aes(gdpPercap, lifeExp, colour = year)) +
+  geom_jitter(shape = "square",
+             alpha = 0.4,
+             size = 2) +
+  geom_smooth() +
+  facet_wrap(~continent) +
+  labs(
+    title = "Life Expectancy as a Function of Wealth",
+    x = "GDP per Capita",
+    y = "Life Expectancy"
+  ) +
+  theme_bw()
+```
+
+---
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+gss_cat %>% 
+  filter(partyid %in% c("Strong democrat",
+                        "Strong republican",
+                        "Independent")) %>% 
+  ggplot(aes(age)) +
+  geom_histogram(binwidth = 5,
+                 fill = "steelblue",
+                 alpha = 0.8) +
+  facet_wrap(~partyid,
+             nrow = 1,
+             ncol = 3,
+             strip.position = "bottom") +
+  labs(
+    title = "Age Distribution by Political Affiliation",
+    x = "",
+    y = "") +
+  theme_bw()
+  
+```
+
+---
+
+```{r}
+gss_cat %>% 
+  mutate(relig = recode(relig,
+                        "Moslem/islam" = "Muslim")) %>%
+  filter(relig %in% c("Christian",
+                      "Muslim") &
+           partyid %in% c("Strong democrat",
+                          "Strong republican",
+                          "Independent") &
+           tvhours < 10) %>% 
+  ggplot(aes(tvhours, colour = partyid, fill = partyid)) +
+  geom_density(alpha = 0.3, show.legend = F) +
+  facet_grid(relig ~ partyid) +
+  labs(
+    title = "TV VIewing Habits by Political and Religious Affiliation",
+    x = "Hours Watching TV",
+    y = "") +
+  theme_bw()
+  
+```
+

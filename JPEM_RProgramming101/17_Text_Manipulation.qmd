@@ -1,0 +1,138 @@
+---
+title: "string detect"
+author: "Jason Pemberton"
+format: html
+editor: visual
+---
+
+## Text Manipulation
+
+```{r}
+#| label: Load Libraries
+#| message: false
+#| warning: false
+#| include: false
+library(tidyverse)
+library(gtExtras)
+```
+
+### str_detect()
+
+Detecting patterns with str_detect()
+
+```{r}
+#| label: str_detect() - Part 1
+#| echo: true
+#| message: false
+#| warning: false
+mtcars %>% 
+  mutate(model = rownames(mtcars)) %>% # there is no column called "Model", just row names
+  mutate(has_m = str_detect(model, "M")) %>% 
+  filter(has_m == TRUE) %>% 
+  select(model, mpg, cyl, disp) %>% 
+  gt() %>% 
+  tab_header(title = "Car Models Containing the Letter M") %>% 
+  cols_align(align = "left") %>% 
+  gt_theme_538()
+```
+
+### str_sub()
+
+Extracting patterns with str_sub()
+
+```{r}
+#| label: str_sub() - Part 2
+#| echo: true
+#| message: false
+#| warning: false
+mtcars %>% 
+  mutate(model = rownames(mtcars)) %>% 
+  mutate('short name' = str_sub(model, 1, 3)) %>%
+  select(model, 'short name', mpg, cyl, disp) %>% 
+  gt() %>% 
+  tab_header(title = "Car Models and Short Names") %>% 
+  cols_align(align = "left") %>% 
+  gt_theme_538()
+```
+
+### str_locate()
+
+Finding and extracting patterns with str_locate() & str_sub()
+
+```{r}
+#| label: str_sub()  + str_locate()- Part 3
+#| echo: true
+#| message: false
+#| warning: false
+starwars %>% 
+  pull(name) %>% # similar to select() but creates a vector
+  str_locate(" ") %>% # str_locate() requires a vector input
+  view()
+# this returns a matrix of start and end positions of space
+
+starwars %>% 
+  filter(species == "Human") %>% 
+  mutate('first name' = 
+           str_sub(name,
+                   1,
+                   str_locate(name, " ")[ ,1] -1)) %>%
+  select(name, 'first name')  %>% 
+  gt() %>% 
+  tab_header(title = "Names of Star Wars Characters") %>% 
+  gt_theme_538(quiet = T)
+```
+
+### str_replace_all()
+
+Replacing string with str_replace_all()
+
+```{r}
+#| label: str_replace_all() - Part 4
+#| echo: true
+#| message: false
+#| warning: false
+
+starwars %>% 
+  select(name, species) %>% 
+  mutate(species = str_replace_all(
+    species, c("Human" = "Homo Sapien",
+               "Droid" = "Android"))) %>% 
+  gt() %>% 
+  tab_header(title = " Star Wars Species Names") %>% 
+  cols_align(align = "left") %>% 
+  gt_theme_538()
+```
+
+### str_to_upper()
+
+Convert string case with str_to_upper()
+
+```{r}
+#| label: str_to_upper() - Part 5
+#| echo: true
+#| message: false
+#| warning: false
+
+starwars %>% 
+  select(name, species) %>% 
+  mutate(species = str_to_upper(species)) %>% # or lower()
+  gt() %>% 
+  tab_header(title = "Species Upper") %>% 
+  cols_align(align = "left") %>% 
+  gt_theme_538()
+
+```
+
+### str_split()
+
+```{r}
+#| label: str_split() - Part 6
+#| echo: true
+#| message: false
+#| warning: false
+
+starwars %>% 
+  mutate(name_parts = str_split(name, " ")) %>% 
+  select(name, name_parts) %>% 
+  view()
+```

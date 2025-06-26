@@ -1,0 +1,59 @@
+---
+title: "ggplot - Advanced 2"
+author: "Jason Pemberton"
+date: "2025-04-16"
+output: html_document
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+Visualizing Difference in Faculty Salaries by Rank and Gender
+
+```{r Load Libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+library(car)
+library(scales)
+
+theme_set(theme_bw() +
+            theme(title = element_text(colour = "steelblue",
+                                       face = "bold")))
+```
+
+------------------------------------------------------------------------
+
+Discipline:  
+labels = A, B, C  
+A = Agriculture  
+B = Biology  
+C = Chemistry  
+
+
+```{r}
+Salaries %>% 
+  mutate(discipline = factor(discipline,
+                             levels = c("A", "B"),
+                             labels = c("Agriculture", "Biology"))) %>% 
+  ggplot(aes(yrs.since.phd, salary)) +
+  geom_point(aes(colour = rank), alpha = 0.5) +
+  geom_smooth(method = lm, se = FALSE) +
+  facet_grid(sex~discipline) +
+  labs(
+    title = "Salary vs Years Since PhD",
+    x = "Years Since PhD",
+    y = "Salary",
+    colour = "Position")
+```
+
+The default smoothing method in geom_smooth() when you don't specify
+"lm" (linear model) is ***LOESS*** (Locally Estimated Scatterplot
+Smoothing) for smaller datasets and ***GAM*** (Generalized Additive
+Model) for larger datasets:
+
+-   LOESS (method = "loess): a non-parametric regression that creates a
+    smooth curve locally fitting small segments of the data. Works with
+    datasets with \< 1000 observations.
+
+-   GAM (method = "gam"): If the dataset is large enough, ggplot
+    automatically switches to GAM wit ha smoothing spline for
+    efficiency.

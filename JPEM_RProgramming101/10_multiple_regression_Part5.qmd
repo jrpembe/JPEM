@@ -1,0 +1,132 @@
+---
+title: "Multiple Regression - Effect Modifiers and Interactions"
+author: "Jason Pemberton"
+format: html
+editor: visual
+---
+
+## Effect Modifiers and Interaction
+
+When the relationship between an independent variable and dependent variable changes depending on the value of a third variable - we call that third variable an effect modifier and say that there has been an "interaction".
+
+```{r}
+#| label: Load Libraries
+#| message: false
+#| warning: false
+#| include: false
+library(tidyverse)
+```
+
+### Simple Linear Regression
+
+First let's look at a simple linear regression
+
+```{r}
+#| label: Visualize Simple Linear Regresion
+#| echo: true
+#| message: false
+#| warning: false
+mtcars %>% 
+  ggplot(aes(wt ,mpg)) +
+  geom_point() +
+  geom_smooth(method = lm, se = F) +
+  theme_bw() +
+  labs(
+    title = "Fuel Efficiency Explained by Weight of Cars",
+    x = "Weight",
+    y = "Fuel Efficiency"
+  )
+```
+
+### Multiple Linear Regression - Without Interaction
+
+Building a multiple linear regression model. By placing \* between displ and drv, we're representing an interaction between the two dependent variables while also including the individual effects of both. An interaction means that the effect of `displ` on `hwy` (highway fuel economy) depends on the value of `drv`
+
+```{r}
+#| label: Visualize Multiple Linear Regresion
+#| echo: true
+#| message: false
+#| warning: false
+
+# Model effects, assuming interaction (*)
+model1 <- mpg %>%
+  mutate(drv = fct_recode(drv, "2" = "f", "2" = "r")) %>%
+  lm(formula = hwy ~ displ * drv, data = .)
+
+summary(model1)
+
+mpg %>% 
+  mutate(drv = fct_recode(drv, "2" = "f", "2" = "r")) %>% 
+  ggplot(aes(displ, hwy, color = drv)) +
+    geom_point() +
+    geom_smooth(method = lm, se = FALSE) +
+      labs(
+        title = "Highway Fuel Economy vs Engine Displacement",
+        x = "Engine Displacement (L)",
+        y = "Highway Fuel Economy (mpg)",
+        color = "Drive Type"
+      ) +
+    theme_bw()
+
+
+# Model effects, no interaction (*)
+model2 <- mpg %>%
+  mutate(drv = fct_recode(drv, "2" = "f", "2" = "r")) %>%
+  lm(formula = hwy ~ displ + drv, data = .)
+
+summary(model2)
+```
+
+Looking at this model, for every unit of increase in displacement, fuel efficiency drops by -2.8785. And when we switch from 4WD to 2WD, we see an increase in fuel efficiency of 4.742. The slope of the two linear trend lines are parallel, there is no interaction between displacement and drive type.
+
+### Multiple Linear Regression - Interaction with a Categorical Variable
+
+To what extent does the weight of a car impact its fuel efficiency? It depends on whether the car is a manual or automatic (a categorical variable). The resulting linear regression trend lines are not parallel.
+
+```{r}
+#| label: Visualize Multiple Linear Regresion - Interaction 1
+#| echo: true
+#| message: false
+#| warning: false
+model3 <- lm(formula = mpg ~ wt * am, data = mtcars)
+summary(model3)
+
+ggplot(mtcars, aes(x = wt, y = mpg, color = factor(am, labels = c("Automatic", "Manual")))) +
+  geom_point(size = 3) +
+  geom_smooth(method = lm, se = F) +
+  labs(
+    title = "Miles Per Gallon vs Weight",
+    x = "Weight (1000 lbs)",
+    y = "Miles Per Gallon (mpg)",
+    color = "Transmission Type"
+  ) +
+  theme_bw()
+```
+
+As you increase the weight of the car one unit, the fuel efficiency decreases -3.7859. If you change nothing else, and just switch from an automatic to a manual transmission, you gain 14.8784 in fuel efficiency. The interaction between weight and transmission is -5.2984 indicates that for manual transmission cars, the negative impact of increasing weight is -5.2984 per unit increase in weight, compared to automatic cars.
+
+### Multiple Linear Regression - Interaction with a Numeric Variable
+
+We've seen how our model performs when the interaction takes place with a categorical variable. Now lets look at interaction wit ha numeric variable.
+
+```{r}
+#| label: Visualize Multiple Linear Regresion - Interaction 2
+#| echo: true
+#| message: false
+#| warning: false
+
+mtcars %>% 
+  lm(mpg ~ wt*hp, data = .) %>% 
+  summary()
+
+ggplot(mtcars, aes(x = wt, y = mpg, color = hp)) +
+  geom_point(size = 3) +
+  geom_smooth(method = lm, se = FALSE) +
+  labs(
+    title = "Miles Per Gallon vs Weight",
+    x = "Weight (1000 lbs)",
+    y = "Miles Per Gallon (mpg)",
+    color = "Horsepower"
+  ) +
+  theme_bw()
+```

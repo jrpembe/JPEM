@@ -1,0 +1,31 @@
+---
+title: "Dealing with NA"
+author: "Jason Pemberton"
+date: "2025-04-16"
+output: html_document
+---
+
+```{r Replace NA in a Vector, echo=FALSE, message=FALSE, warning=FALSE}
+x <- c(4, 9, 1, NA, 5, NA, NA, 10)
+
+x[is.na(x)] <- 0
+
+x
+```
+
+---
+
+```{r Repalce NA in a data.frame}
+data(airquality)
+
+avg_ozone <- mean(airquality$Ozone)
+avg_ozone
+
+# Replace NA
+airquality[is.na(airquality)] <- 0
+avg_ozone2 <- mean(airquality$Ozone)
+avg_ozone2
+
+
+```
+

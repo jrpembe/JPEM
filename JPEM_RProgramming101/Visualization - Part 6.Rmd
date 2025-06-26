@@ -5,15 +5,15 @@ date: "2025-03-12"
 output: html_document
 ---
 
-Load Libraries  
+Load Libraries
 
 ```{r Load Libraries, message=FALSE, warning=FALSE, include=FALSE}
 library(tidyverse)
 ```
 
----
+------------------------------------------------------------------------
 
-Bar Charts  
+**Bar Charts**
 
 ```{r Bar Chart, echo=FALSE}
 
@@ -32,7 +32,7 @@ starwars %>%
   
 ```
 
----
+------------------------------------------------------------------------
 
 ```{r Bar Chart with Facet Wrap, echo=FALSE, message=FALSE, warning=FALSE}
 

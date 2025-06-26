@@ -1,0 +1,190 @@
+---
+title: "K-means Clustering: Penguins"
+author: "Jason Pemberton"
+format: html
+editor: visual
+---
+
+## K-means Clustering
+
+```{r}
+#| label: Load Libraries
+#| message: false
+#| warning: false
+#| include: false
+library(tidyverse)  # data manipulation
+library(cluster)  # clustering algorithms
+library(gganimate)
+```
+
+### Load and Prepare Data
+
+```{r}
+#| label: Load Data & Prepare
+#| echo: true
+#| message: false
+#| warning: false
+penguins <- read_csv("data/penguins.csv")
+penguins <- na.omit(penguins)
+# Select numeric columns and standardize
+numeric_columns <- c("bill_length_mm", "bill_depth_mm", "flipper_length_mm", "body_mass_g")
+
+penguins_standardized <- penguins %>%
+  mutate(across(all_of(numeric_columns), ~ scale(.)[, 1], .names = "std_{col}"))
+
+# View the standardized dataset
+head(penguins_standardized)
+```
+
+### Initial EDA
+
+```{r}
+#| label: Visualization - Initial EDA
+#| echo: true
+#| message: false
+#| warning: false
+penguins_standardized %>%
+  ggplot(aes(std_flipper_length_mm, std_bill_length_mm)) +
+  geom_point() +
+  labs(
+    title = "Penguins Bill vs Flipper Length",
+    x = "Flipper Length (standardized)",
+    y = "Bill Length (standardized)") +
+  theme(text = element_text(size = 12))
+```
+
+### Assign Initial Clusters
+
+Step 1: Randomly assign each data point to an initial cluster 1-3
+
+```{r}
+#| label: Assign Initial Clusters
+#| echo: true
+#| message: false
+#| warning: false
+set.seed(123)  # Set seed for reproducibility
+
+# Select only standardized numeric columns
+penguins_clustering <- penguins_standardized[, c("std_flipper_length_mm", "std_bill_length_mm")]
+
+# Randomly assign each row to a cluster (1, 2, or 3)
+penguins_clustering$cluster <- sample(1:3, nrow(penguins_clustering), replace = TRUE)
+
+head(penguins_clustering)  # View initial assignments
+```
+
+### Compute Initial Centroids
+
+Step 2: Compute initial centroids
+
+```{r}
+#| label: Compute Initial Centroids
+#| echo: true
+#| message: false
+#| warning: false
+compute_centroids <- function(data) {
+  data %>%
+    group_by(cluster) %>%
+    summarise(
+      centroid_flipper = mean(std_flipper_length_mm, na.rm = TRUE),
+      centroid_bill = mean(std_bill_length_mm, na.rm = TRUE)
+    )
+}
+
+centroids <- compute_centroids(penguins_clustering)
+print(centroids)  # View initial centroids
+```
+
+### Reassign Data Points to Nearest Centroid
+
+Step 3: Reassign each data point to nearest centroid
+
+```{r}
+#| label: Reassign Clusters
+#| echo: true
+#| message: false
+#| warning: false
+reassign_clusters <- function(data, centroids) {
+  data <- data %>%
+    rowwise() %>%
+    mutate(
+      cluster = which.min(
+        sqrt((std_flipper_length_mm - centroids$centroid_flipper)^2 + 
+             (std_bill_length_mm - centroids$centroid_bill)^2)
+      )
+    ) %>%
+    ungroup() # Ensure no lingering rowwise behavior
+  
+  return(data)
+}
+
+penguins_clustering <- reassign_clusters(penguins_clustering, centroids)
+head(penguins_clustering)
+```
+
+### Iterate the cluster reassignment process
+
+Step 4: Iterate the process
+
+```{r}
+#| label: Iterate
+#| echo: true
+#| message: false
+#| warning: false
+iterations <- list() # Store iteration data
+
+for (i in 1:10) {  # Run for 10 iterations
+  centroids <- compute_centroids(penguins_clustering)  # Update centroids
+  penguins_clustering <- reassign_clusters(penguins_clustering, centroids)  # Reassign clusters
+  
+  # Store centroid positions with iteration labels
+  centroids$iteration <- i
+  iterations[[i]] <- centroids
+}
+
+# Combine all iterations into one dataset
+centroid_history <- do.call(rbind, iterations)
+```
+
+### Visualize Moving Centroids
+
+```{r}
+#| label: Visualize Iterations
+#| echo: false
+#| message: false
+#| warning: false
+ggplot(penguins_clustering, aes(std_flipper_length_mm, std_bill_length_mm, color = factor(cluster))) +
+  geom_point(alpha = 0.7) +  # Data points
+  geom_point(data = centroid_history, aes(centroid_flipper, centroid_bill), color = "black", size = 5) +  # Centroids
+  geom_text(data = centroid_history, aes(centroid_flipper, centroid_bill, label = cluster), vjust = -1) +  # Cluster labels
+  transition_states(iteration, transition_length = 2, state_length = 1) +  # Animate over iterations
+  labs(title = "K-Means Clustering: Centroid Movement",
+       subtitle = "Iteration: {closest_state}",
+       x = "Flipper Length (standardized)",
+       y = "Bill Length (standardized)")
+```
+
+### Final Visualization
+
+Step 5: Visualize final clustering
+
+```{r}
+#| label: Visualize final Clusters
+#| echo: true
+#| message: false
+#| warning: false
+# Recode cluster numbers to species names
+penguins_clustering <- penguins_clustering %>%
+  mutate(cluster = recode(cluster, `1` = "Adelie", `2` = "Gentoo", `3` = "Chinstrap"))
+
+# Plot with updated species names
+ggplot(penguins_clustering, aes(std_flipper_length_mm, std_bill_length_mm, color = cluster)) +
+  geom_point() +
+  labs(title = "Manual K-Means Clustering on Penguins",
+       x = "Flipper Length (standardized)",
+       y = "Bill Length (standardized)",
+       color = "Species") +
+  theme_minimal()
+
+
+```

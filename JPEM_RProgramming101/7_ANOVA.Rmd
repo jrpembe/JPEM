@@ -23,8 +23,8 @@ gapdata <- gapminder %>%
 ```
 
 ---
-H0 (Null Hypothesis): The mean life expectancy of the three continents is the same  
 
+H0: (Null Hypothesis): The mean life expectancy of the three continents is the same  
 H1: (Alternative Hypothesis): The mean life expectancy is not the same  
 
 ```{r Look at distribution of means}
@@ -53,6 +53,7 @@ Given than p is much less than 0.05 (p = 0.00000342), we reject the null hypothe
 
 ---
 
+ANOVA
 ```{r Compare results}
 
 gapdata %>% 
@@ -140,5 +141,50 @@ combined_plot <- boxplot | density_plot  # Use patchwork to align the visuals ho
 # Display the combined plot
 print(combined_plot)
   
+```
+
+---
+H0: The amount of REM sleep for all vores is the same
+H1: The amount of REM sleep for all vores is not the same
+
+```{r Sleep Patterns of Mammals}
+
+my_data <- msleep %>% 
+  select(vore, sleep_rem) %>% 
+  drop_na()
+
+model1 <- aov(sleep_rem ~ vore, data = my_data)
+
+summary(model1)
+
+# The p-value is < 0.05 so we reject the null hypothesis (mean REM sleep is the same)
+
+# alternate method using pipes
+
+msleep %>% 
+  select(vore, sleep_rem) %>% 
+  drop_na() %>% 
+  aov(sleep_rem ~ vore, data = .) %>% 
+  summary()
+
+```
+
+---
+
+```{r}
+# Create a density plot for sleep_rem by vore
+
+msleep %>% 
+  drop_na() %>% 
+  ggplot(aes(x = sleep_rem, fill = vore)) +
+  geom_density(alpha = 0.6) +
+  facet_wrap(~vore, ncol = 2) +
+  labs(title = "Density Plot of REM Sleep by Vore Type",
+       x = "REM Sleep (hours)",
+       y = "Density") +
+  theme_minimal()
+
+# Print the plot
+print(density_plot)
 ```
 

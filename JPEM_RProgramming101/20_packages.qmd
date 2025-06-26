@@ -1,0 +1,488 @@
+---
+title: "R Packages"
+author: "Jason Pemberton"
+format: html
+editor: visual
+---
+
+```{r}
+#| label: Load Libraries
+#| message: false
+#| warning: false
+#| include: false
+library(tidyverse)
+```
+
+## Packages
+
+### dplyr
+
+dplyr is popular R package for data manipulation, known for its intuitive syntax and verb that make it easy to transform datasets.
+
+Useful functions:
+
+-   **select()**: choose specific columns from a data frame
+
+-   **filter()**: select rows that meet specific conditions
+
+-   **mutate()**: create new columns or modify existing ones
+
+-   **arrange()**: order rows based on column values
+
+-   **summarise()**: reduce multiple rows to a singular summary one
+
+-   **group_by()**: group data by one or more columns for aggregation
+
+#### select()
+
+```{r}
+#| label: select()
+#| echo: true
+#| message: false
+#| warning: false
+starwars %>% 
+  select(name, species, contains("color")) %>% 
+  head(10)
+```
+
+#### filter() {data-link="select()"}
+
+```{r}
+#| label: select()
+#| echo: true
+#| message: false
+#| warning: false
+#| paged-print: true
+starwars %>% 
+  select(name, species, height, eye_color) %>% 
+  filter(species == "Human" &
+         height < 200 &
+         eye_color %in% c("blue", "brown")) %>% 
+  head(10)
+```
+
+#### mutate() {data-link="select()"}
+
+```{r}
+#| label: mutate()
+#| echo: true
+#| message: false
+#| warning: false
+#| paged-print: true
+starwars %>% 
+  select(name, height, species, eye_color) %>% 
+  mutate(height = height / 100) %>% 
+  head(10)
+```
+
+#### arrange() {data-link="select()"}
+
+```{r}
+#| label: arrange()
+#| echo: true
+#| message: false
+#| warning: false
+#| paged-print: true
+starwars %>% 
+  select(name, height, species, eye_color) %>% 
+  arrange(desc(species))
+```
+
+#### recode() {data-link="select()"}
+
+```{r}
+#| label: recode()
+#| echo: true
+#| message: false
+#| warning: false
+#| paged-print: true
+starwars %>% 
+  select(name, height, species, eye_color) %>% 
+    mutate(species = recode(species, "Human" = "Homo Sapien", "Droid" = "Robot"))
+
+# or use case_when
+#  mutate(species = case_when(
+#    species == "Human" ~ "Homo Sapien",
+#    species == "Droid" ~ "Robot"))
+
+```
+
+#### summarize() {data-link="select()"}
+
+```{r}
+#| label: summarize()
+#| echo: true
+#| message: false
+#| warning: false
+#| paged-print: true
+starwars %>% 
+  select(sex, height, mass) %>% 
+  filter(sex == "male" | sex == "female") %>% 
+  mutate(height = height / 100) %>% 
+  drop_na() %>% 
+  group_by(sex) %>% 
+  summarise("Average Height" = mean(height),
+            "Average Mass" = mean(mass))
+```
+
+### ggplot
+
+#### Scatterplot
+
+```{r}
+#| label: Scatterplot - Penguins
+#| echo: true
+#| message: false
+#| warning: false
+library(palmerpenguins)
+
+penguins %>%
+  ggplot(aes(flipper_length_mm, body_mass_g, color = species)) +
+  geom_point(size = 3, alpha = 0.7) +
+  labs(
+    title = "Penguin Flipper Length vs. Body Mass",
+    x = "Flipper Length (mm)",
+    y = "Body Mass (g)",
+    color = "Species"
+  ) +
+  theme_minimal()
+
+```
+
+#### Boxplot
+
+```{r}
+#| label: Boxplot - Penguins
+#| echo: true
+#| message: false
+#| warning: false
+
+penguins %>% 
+  ggplot(aes(species, bill_length_mm, fill = species)) +
+  geom_boxplot(alpha = 0.7) +
+  labs(
+    title = "Penguin Bill Length by Species",
+    x = "Species",
+    y = "Bill Length (mm)",
+    fill = "Species"
+  ) +
+  theme_minimal()
+
+```
+
+#### Barplot
+
+```{r}
+#| label: Barplot - Penguins
+#| echo: true
+#| message: false
+#| warning: false
+
+# Calculate average body mass for each species
+avg_mass <- aggregate(body_mass_g ~ species, data = penguins, FUN = mean, na.rm = TRUE)
+
+# Create bar plot
+ggplot(avg_mass, aes(x = species, y = body_mass_g, fill = species)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Average Body Mass of Penguin Species",
+       x = "Penguin Species",
+       y = "Average Body Mass (g)") +
+  theme_minimal()
+```
+
+#### Lollipop Plot
+
+```{r}
+#| label: Lollipop Plot - Chicken Weights
+#| echo: true
+#| message: false
+#| warning: false
+
+chickwts %>% 
+  group_by(feed) %>% 
+  mutate(mean_by_feed = mean(weight)) %>% 
+  ungroup() %>% 
+  mutate(feed = fct_reorder(feed, mean_by_feed)) %>% 
+  ggplot(aes(feed, weight, colour = feed)) +
+  coord_flip() +
+  geom_jitter(show.legend = F,
+              size = 4,
+              alpha = 0.2,
+              width = 0.05) +
+  geom_point(stat = "summary",
+             fun = "mean",
+             size = 8,
+             show.legend = F) +
+  geom_hline(aes(yintercept = mean(weight)),
+             colour = "gray70",
+             size = 0.9) +
+  geom_segment(aes(
+    feed, 
+    mean(weight),
+    xend = feed,
+    yend = mean_by_feed),
+    size = 2,
+    show.legend = F) +
+  labs(
+    title = "Weight of Chickens by Feed Group",
+    x = "Feed",
+    y = "Weight of Chickens") +
+  theme(legend.position = "none") +
+  theme_minimal()
+```
+
+#### Ridge Plot
+
+```{r}
+#| label: Ridge Plot - Lincoln, NE Temperatures
+#| echo: true
+#| message: false
+#| warning: false
+
+library(ggridges)
+
+ggplot(
+  lincoln_weather, 
+  aes(x = `Mean Temperature [F]`, y = `Month`, fill = stat(x))
+  ) +
+  geom_density_ridges_gradient(scale = 3, size = 0.3, rel_min_height = 0.01) +
+  scale_fill_viridis_c(name = "Temp. [F]", option = "C") +
+  labs(title = 'Temperatures in Lincoln NE') 
+
+```
+
+### forcats
+
+forcats provides tools for working with categorical data (factors), making it easier to reorder, create, and modify factor levels.
+
+1.  fct_relevel(): Manually change the order of factor levels
+2.  fct_reorder(): Reorder factor levels based on another variable
+3.  fct_infreq(): Reorder levels based on their frequency
+4.  fct_rev(): Reverse the order of factor levels
+
+```{r}
+gss_cat %>% 
+  count(marital)
+
+
+# fct_relevel
+gss_cat %>%
+  mutate(marital = fct_relevel(marital,
+                               "Never married",
+                               "Married",
+                               "Divorced",
+                               "Widowed",
+                               "Separated")) %>% 
+  count(marital)
+
+
+# fct_infreq
+gss_cat %>%
+  mutate(marital = fct_infreq(marital)) %>%
+  #mutate(marital = fct_rev(marital)) %>%
+  count(marital)
+
+
+# fct_rev
+gss_cat %>%
+  mutate(marital = fct_infreq(marital)) %>%
+  mutate(marital = fct_rev(marital)) %>%
+  count(marital)
+
+# fct_reorder
+gss_cat %>% 
+  group_by(relig) %>% 
+  summarise(meantv = mean(tvhours, na.rm = T)) %>% 
+  mutate(relig = fct_reorder(relig, meantv)) %>% 
+  ggplot(aes(meantv, relig)) +
+  geom_point(size = 4,
+             colour = "steelblue") +
+  theme_minimal() +
+  labs(
+    title = "Average TV Watching Time by Religion",
+    x = "Average TV Time",
+    y = ""
+  )
+```
+
+### stringr
+
+stringr provides functions to work efficiently with strings, including pattern matching, replacement and splitting
+
+1.  str_c(): Concatenate strings together
+2.  str_detect(): Detect the presence of patterns
+3.  str_sub(): Extract substrings from a string
+4.  str_to_upper(): Change lowercase to uppercase
+5.  str_replace(): Repalce matching patterns in a string
+6.  str_split(): Split strings into substrings
+
+```{r}
+# str_c()
+iris %>% 
+  select(Species, Sepal.Length) %>% 
+  mutate(Description = 
+           str_c(Species,
+                 ": ",
+                 Sepal.Length,
+                 " cm")) %>% 
+  head(10)
+```
+
+### gtExtras
+
+```{r}
+#| message: false
+#| warning: false
+library(gtExtras)
+library(gapminder)
+library(RColorBrewer)
+library(svglite)
+
+gapminder %>% 
+  filter(continent == "Europe") %>% 
+  group_by(country) %>% 
+  summarise(`GDP per capita` = round(mean(gdpPercap)),
+            `Pop size` = round(mean(pop)),
+            `Life expectancy` = list(lifeExp)) %>% 
+  arrange(-`GDP per capita`) %>% 
+  head(10) %>% 
+  gt() %>% 
+  gt_theme_pff() %>% 
+  gt_plt_dist(`Life expectancy`) %>% 
+  gt_color_rows(column = `Pop size`,
+                palette = "Pastel1") %>% 
+  gt_plt_bar_pct(`GDP per capita`,
+                 fill = "steelblue",
+                 height = 15,
+                 width = 120) %>%
+  tab_header(title = "GDP and Pop Size of Europe") %>% 
+  cols_align(align = "left")
+
+
+# Filter for Afghanistan
+afghanistan_data <- gapminder %>%
+  filter(country == "Afghanistan") %>%
+  select(country, continent, year, lifeExp, pop, gdpPercap)
+
+# Create a table with a highlighted row for 1972
+afghanistan_data %>%
+  gt() %>%
+  tab_options(
+    table.font.size = px(14)
+  ) %>%
+  tab_style(
+    style = cell_fill(color = "steelblue"),
+    locations = cells_body(
+      rows = year == 1972
+    )
+  ) %>%
+  tab_header(title = "Afghanistan 1972 Gapminder Data")
+
+```
+
+### plotly
+
+plotly is a package for creating interactive web-based plots, often used to enhance visualizations (initially created in ggplot2).
+
+1.  plot_ly(): Create a new interactive plot
+2.  ggplotly(): Convert ggplots to interactive plots
+3.  layout(): Customize the layout of a plotly object
+4.  add_trace(): Add a trace to an existing object
+
+```{r}
+#| label: plotly
+#| echo: true
+#| message: false
+#| warning: false
+library(plotly)
+
+# Interactive plot
+p <- starwars %>% 
+  drop_na(height, mass, eye_color) %>% 
+  filter(mass < 250) %>% 
+  filter(eye_color %in% c("blue",
+                          "brown",
+                          "black",
+                          "pink",
+                          "red",
+                          "orange")) %>% 
+  ggplot(aes(height,
+             mass,
+             colour = eye_color)) +
+  geom_jitter(size = 6,
+              alpha = 0.5) +
+  scale_color_manual(values = c("blue" = "blue",
+                                "brown" = "brown",
+                                "black" = "black",
+                                "pink" = "pink",
+                                "red" = "red",
+                                "orange" = "orange")) +
+  theme_minimal() +
+  theme(legend.position = c(0.05, 0.90),
+        legend.justification = c("left", "top")) +
+  labs(
+    title = "Star Wars Characters - height, mass, eye colour",
+    x = "Height",
+    y = "Mass",
+    colour = "Eye Colour"
+  )
+
+ggplotly(p)
+```
+
+```{r}
+# 3D plot
+library(plotly)
+library(datasets) # Contains the built-in "trees" dataset
+
+# Create a 3D scatter plot using the "trees" dataset
+plot_ly(
+  data = trees,
+  x = ~Height,
+  y = ~Girth,
+  z = ~Volume,  # Using "Volume" since "Width" isn't in the dataset
+  type = "scatter3d",
+  mode = "markers",
+  marker = list(size = 5, color = ~Volume, colorscale = "Viridis")
+) %>%
+  layout(
+    title = "3D Scatter Plot of Trees Dataset",
+    scene = list(
+      xaxis = list(title = "Height"),
+      yaxis = list(title = "Girth"),
+      zaxis = list(title = "Volume")
+    )
+  )
+```
+
+```{r}
+# Surface plot
+library(reshape2)
+
+# Convert volcano matrix to a dataframe
+volcano_df <- melt(volcano)
+colnames(volcano_df) <- c("x", "y", "elevation")
+
+# Create the plot
+ggplot(volcano_df, aes(x = x, y = y, fill = elevation)) +
+  geom_raster() +
+  scale_fill_viridis_c(option = "plasma") +
+  labs(title = "Topographic Map of Maunga Whau Volcano",
+       x = "X Coordinate",
+       y = "Y Coordinate",
+       fill = "Elevation") +
+  theme_minimal()
+
+
+# or 
+
+library(plotly)
+
+plot_ly(
+  z = ~volcano, 
+  type = "surface"
+) %>%
+  layout(title = "3D Surface Plot of Maunga Whau Volcano")
+```
+
+lubridate

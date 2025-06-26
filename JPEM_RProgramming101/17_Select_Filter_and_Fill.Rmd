@@ -1,0 +1,31 @@
+---
+title: "Select and Filter"
+author: "Jason Pemberton"
+date: "2025-04-15"
+output: html_document
+---
+
+```{r Load Libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+```
+
+---
+
+```{r Select and Filter, message=FALSE, warning=FALSE}
+starwars %>% 
+  select(name, kind = species) %>% # you can rename a selected column within the pipe flow
+  filter(kind %in% c("Human", "Droid"))
+```
+
+---
+
+Fill (Down)
+```{r Fill, message=FALSE, warning=FALSE}
+
+df <- read_csv("data/fill_demo.csv")
+
+df1 <- df %>% 
+  # fill(column_name) to fill a specific column
+  fill(1:5)
+```
+

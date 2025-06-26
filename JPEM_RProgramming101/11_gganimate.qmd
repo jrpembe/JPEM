@@ -1,0 +1,134 @@
+---
+title: "gganimate"
+author: "Jason Pemberton"
+format: html
+editor: visual
+---
+
+```{r}
+#| label: Load Libraries
+#| echo: true
+#| message: false
+#| warning: false
+#| echo: false
+library(tidyverse)
+library(gganimate)
+library(gapminder)
+library(babynames)
+library(viridis)
+library(RColorBrewer)
+library(png)
+library(gifski)
+```
+
+### gganimate
+
+```{r}
+#| label: gganimate - babynames
+#| echo: true
+#| message: false
+#| warning: false
+# Filter dataset for selected names
+filtered_data <- babynames %>%
+  filter(name %in% c("James", "Paul", "Andrew", "John")) %>%
+  filter(sex == "M") %>%
+  mutate(year = as.numeric(year))  # Ensure year is numeric
+
+# Create animated plot
+ggplot(filtered_data, aes(x = year, y = n, group = name, colour = name)) +
+  geom_line(linewidth = 1.5) +
+  theme_bw() +
+  scale_color_viridis(discrete = TRUE) +
+  labs(
+    title = "Popular Boys Names in America",
+    x = "Year",
+    y = "Count",
+    colour = "Names"
+  ) +
+  theme(
+    plot.title = element_text(size = 12, colour = "steelblue")
+  ) +
+  transition_reveal(year)
+```
+
+### Animating Titles
+
+Animating the title plot to change along with the visualization
+
+```{r}
+#| label: gganimate - animate title
+#| echo: true
+#| message: false
+#| warning: false
+gapminder %>% 
+  ggplot(aes(
+    gdpPercap, 
+    lifeExp, 
+    size = pop, 
+    colour = continent)) +
+  geom_point() +
+  scale_x_log10() +
+  theme_bw() +
+  labs(
+    title = "Year: {frame_time}",
+    x = "GDP per Capita",
+    y = "Life Expectancy") +
+  theme(plot.title = element_text(size = 40,
+                                  hjust = 0.5,
+                                  colour = "steelblue")) +
+  transition_time(year)
+
+# save as gif
+anim_save("271-ggplot2-animated-gif-chart-with-gganimate1.gif")
+```
+
+### gganimate + facet_wrap
+
+```{r}
+#| label: gganimate - facet_wrap
+#| echo: true
+#| message: false
+#| warning: false
+gapminder %>% 
+  filter(continent != "Oceania") %>% 
+  ggplot(aes(
+    gdpPercap,
+    lifeExp,
+    size = pop,
+    colour = country)) +
+  geom_point(alpha = 0.7,
+             show.legend = FALSE) +
+  scale_color_manual(values = country_colors) +
+  scale_size(range = c(2, 12)) +
+  scale_x_log10() +
+  facet_wrap(~continent) +
+  theme_bw() +
+  labs(
+    title = "Year: {frame_time}",
+    x = "GDP per Capita",
+    y = "Life Expectancy"
+  ) +
+  theme(plot.title = element_text(size = 40,
+                                  hjust = 0.5,
+                                  colour = "steelblue")) +
+  transition_time(year)
+```
+
+Chicken Weight
+
+```{r}
+ChickWeight %>% 
+  ggplot(aes(x=factor(Diet), y=weight, fill = Diet)) +
+  geom_bar(stat = "identity") +
+  theme_bw() +
+  scale_fill_brewer(palette = "Set2") +
+  labs(
+    title = "Time: {frame_time}",
+    x = "Diet",
+    y = "Weight"
+  ) +
+  theme(plot.title = element_text(size = 20,
+                                  colour = "steelblue")) +
+  transition_time(Time)
+  
+```

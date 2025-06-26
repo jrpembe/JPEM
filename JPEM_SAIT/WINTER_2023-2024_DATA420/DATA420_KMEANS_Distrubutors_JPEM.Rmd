@@ -1,0 +1,107 @@
+---
+title: "DATA420 - KMeans - Distributors"
+author: "Jason Pemberton"
+date: "2023-11-17"
+output: 
+  html_document:
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Case Study Overview
+
+KMeans is used across many fields in a variety of cases; some examples of clustering use cases include customer segmentation, fraud detection, predicting account attrition, targeting client incentives, cybercrime identification, and delivery route optimization. The KMeans clustering algorithm is increasingly being used where businesses are trying to identify patterns and optimize service.
+
+This example uses a simulated real world scenario. A textile company in New York state, USA, must decrease expenses by minimizing delivery costs. One way to do that is to relocate warehouses closer to their distributors. The company employs 118 distributors across the state of New York. This demonstration simulates how an operations manager could segment distributors into five clustered geographies using the KMeans function and then identify five optimal warehouse locations central to those clusters using the centroid function. The objective is to discover mapping coordinates that can be used to identify five central warehouse locations.
+
+
+```{r Load libraries, include=FALSE}
+library(tidyverse)
+library(leaflet)
+library(htmlwidgets)
+library(crosstalk)
+library(widgetframe)
+```
+
+# Load and prepare data
+
+The dataset is based on randomly generated names and addresses in New York state with real latitude and longitude coordinates. The dataset contains the following ten columns: id, first_name, last_name, telephone, address, city, state, zip, latitude, longitude. 
+
+```{r Load data}
+data <- read_csv("C:/Users/jason/OneDrive/SAIT/SAIT Instructor/2023-2024/FALL 2023 - COURSE - NEW_SAIT_DATA420/data/DistributorData.csv")
+```
+
+# Visualize data
+
+Step 1: Visualize the latitude and longitude data uaing a scatterplot
+
+```{r Visualize data}
+data %>% 
+  ggplot(aes(x = longitude, y = latitude, label = id)) +
+  geom_point() +
+  geom_text(nudge_x = 0.1, nudge_y = 0.1, size = 3) +  # Adjust nudge values as needed
+  labs(title = "Distributor Locations", x = "Longitude", y = "Latitude") +
+  theme_minimal()
+```
+
+# K-Means Clustering
+
+Apply k-means clustering to the geospatial data columns with a k value of 5 (the number of distribution centres the company wishes to build). We will create a new column in the dataframe called "cluster" where we will assign the cluster output from the k-means model.
+```{r}
+# Perform k-means clustering with 5 clusters
+k <- 5
+kmeans_result <- kmeans(data[, c("longitude", "latitude")], centers = k)
+
+# Add cluster assignment to the data frame
+data$cluster <- as.factor(kmeans_result$cluster)
+```
+
+# Visualize the model results
+
+Now that we have run k-means, we will create a new scatterplot similar to the one we ran at the beginning. This time we will assign their cluster values to the colour attribute to see how k-means chose distribution centre optimization.
+```{r}
+# Create a scatterplot with coloured points based on clusters
+ggplot(data, aes(x = longitude, y = latitude, label = id, color = cluster)) +
+  geom_point() +
+  geom_text(nudge_x = 0.1, nudge_y = 0.1, size = 3, col="black") +
+  labs(title = "Distributor Locations and Clusters", x = "Longitude", y = "Latitude") +
+  theme_minimal()
+```
+
+# Visualize the cluster distribution
+
+We can also look at the distribution of cluster assignments using a bar chart.
+```{r}
+# Create a bar chart showing the number of observations in each cluster
+ggplot(data, aes(x = cluster, fill = cluster)) +
+  geom_bar() +
+  labs(title = "Number of Observations in Each Cluster", x = "Cluster", y = "Count") +
+  theme_minimal()
+```
+
+# Mapping distributors and centroids
+Finally we will use the leaflet package to visualize distribution centre locations on a map. 
+```{r Mapping data}
+# Create a leaflet map with data points and centroids
+map <- leaflet(data) %>%
+  addTiles() %>%
+  addMarkers(~longitude, ~latitude, label = ~id, group = "Data Points") %>%
+  addCircleMarkers(lng = kmeans_result$centers[, "longitude"],
+                   lat = kmeans_result$centers[, "latitude"],
+                   label = as.character(1:k),
+                   group = "Centroids",
+                   color = "blue",  # Customize the color of centroids
+                   radius = 10)     # Customize the size of centroids
+
+# Add layer control to toggle on/off data points and centroids
+map <- map %>%
+  addLayersControl(overlayGroups = c("Data Points", "Centroids"),
+                   options = layersControlOptions(collapsed = FALSE))
+
+# Print the map
+map
+```
+

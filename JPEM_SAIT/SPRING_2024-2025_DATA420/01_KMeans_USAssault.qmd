@@ -1,0 +1,179 @@
+---
+title: "K-means Clustering: US Arrests"
+author: "Jason Pemberton"
+format: html
+editor: visual
+---
+
+## K-means Clustering
+
+```{r}
+#| label: Load Libraries
+#| message: false
+#| warning: false
+#| include: false
+library(tidyverse)  # data manipulation
+library(cluster)    # clustering algorithms
+library(factoextra) # clustering algorithms & visualization
+```
+
+```{r}
+#| label: Load Data & Prepare
+#| echo: true
+#| message: false
+#| warning: false
+
+df <- USArrests
+
+df <- na.omit(df)
+
+# to prevent the clustering algorithm from depending on an arbitrary variable unit, start by scaling/standardizing the data using the R function scale
+
+# Calculated for each variable by subtracting its mean and dividing by its standard deviation
+df <- scale(df)
+head(df)
+```
+
+### Clustering Distance Measures
+
+1.  Euclidean distance
+2.  Manhattan distance
+
+```{r}
+#| label: Euclidean Distance
+#| echo: true
+#| message: false
+#| warning: false
+distance <- get_dist(df)
+fviz_dist(distance, gradient = list(low = "#00AFBB", mid = "white", high = "#FC4E07")) +
+  theme(axis.text.x = element_text(size = 8, angle = 45, hjust = 1, vjust = 1))
+```
+
+### K-Means Clustering
+
+K-means clustering is the most commonly used unsupervised machine learning algorithm for partitioning a given data set into a set of *k* groups (i.e. *k* clusters), where *k* represents the number of groups pre-specified by the analyst. It classifies objects in multiple groups (i.e., clusters), such that objects within the same cluster are as similar as possible (i.e., high intra-class similarity), whereas objects from different clusters are as dissimilar as possible (i.e., low inter-class similarity). In k-means clustering, each cluster is represented by its centre (i.e, centroid) which corresponds to the mean of points assigned to the cluster.
+
+```{r}
+#| label: K-means Clustering
+#| echo: true
+#| message: false
+#| warning: false
+k2 <- kmeans(df, centers = 2, nstart = 25)
+str(k2)
+```
+
+#### The output of `kmeans` is a list with several bits of information. The most important being:
+
+-   `cluster`: A vector of integers (from 1:k) indicating the cluster to which each point is allocated.
+
+-   `centers`: A matrix of cluster centres.
+
+-   `totss`: The total sum of squares.
+
+-   `withinss`: Vector of within-cluster sum of squares, one component per cluster.
+
+-   `tot.withinss`: Total within-cluster sum of squares, i.e. sum(withinss).
+
+-   `betweenss`: The between-cluster sum of squares, i.e. \$totss-tot.withinss\$.
+
+-   `size`: The number of points in each cluster.
+
+```{r}
+#| label: Visualize - K-means
+#| echo: true
+#| message: false
+#| warning: false
+fviz_cluster(k2, data = df)
+
+pc <- prcomp(df, scale = TRUE)  # Perform PCA
+summary(pc)                     # Check variance explained
+fviz_pca_var(pc)
+```
+
+```{r}
+#| label: Visualize - K-means ggplot
+#| echo: true
+#| message: false
+#| warning: false
+df %>%
+  as_tibble() %>%
+  mutate(cluster = k2$cluster,
+         state = row.names(USArrests)) %>%
+  ggplot(aes(UrbanPop, Murder, color = factor(cluster), label = state)) +
+  geom_text()
+```
+
+Determining Optimal K
+
+```{r}
+#| label: Optimal K
+#| echo: true
+#| message: false
+#| warning: false
+set.seed(123)
+
+# function to compute total within-cluster sum of square 
+wss <- function(k) {
+  kmeans(df, k, nstart = 10 )$tot.withinss
+}
+
+# Compute and plot wss for k = 1 to k = 15
+k.values <- 1:15
+
+# extract wss for 2-15 clusters
+wss_values <- map_dbl(k.values, wss)
+
+plot(k.values, wss_values,
+       type="b", pch = 19, frame = FALSE, 
+       xlab="Number of clusters K",
+       ylab="Total within-clusters sum of squares")
+```
+
+OR
+
+```{r}
+#| label: Optimal K - Alternative
+#| echo: true
+#| message: false
+#| warning: false
+set.seed(123)
+
+fviz_nbclust(df, kmeans, method = "wss")
+```
+
+Optimal K = 4
+
+```{r}
+#| label: Final K-means model
+#| echo: true
+#| message: false
+#| warning: false
+# Compute k-means clustering with k = 4
+set.seed(123)
+final <- kmeans(df, 4, nstart = 25)
+print(final)
+```
+
+```{r}
+#| label: Final Visual, fviz_cluster
+#| echo: true
+#| message: false
+#| warning: false
+fviz_cluster(final, data = df)
+```
+
+```{r}
+#| label: Final Visual - ggplot
+#| echo: true
+#| message: false
+#| warning: false
+df %>%
+  as_tibble() %>%
+  mutate(cluster = final$cluster,
+         state = row.names(USArrests)) %>%
+  ggplot(aes(UrbanPop, Murder, fill = factor(cluster), label = state, alpha = 0.5)) +
+  geom_label(color = "black") +  # Black text inside colored boxes
+  scale_fill_manual(values = c("lightpink", "lightblue", "lightgreen", "lightgray")) +  # Customize colors if needed
+  theme_minimal()
+
+```

@@ -1,0 +1,43 @@
+---
+title: "ggplot - Lollipop Graph"
+author: "Jason Pemberton"
+date: "2025-04-15"
+output: html_document
+---
+
+Representing the relationship between a categorical and a numeric variable
+
+```{r Load Libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+library(forcats)
+
+theme_set(theme_bw() + theme(panel.grid = element_blank()))
+
+head(msleep)
+```
+
+---
+
+```{r Visualize, echo=FALSE, message=FALSE, warning=FALSE}
+msleep %>%
+  group_by(order) %>% 
+  summarise(mean_sleep = mean(sleep_total)) %>% 
+  mutate(order = fct_reorder(order, mean_sleep)) %>% 
+  ggplot(aes(order, mean_sleep)) +
+  geom_point(size = 3,
+             colour = "orange") +
+  geom_segment(aes(order, mean(msleep$sleep_total),
+                   xend = order,
+                   yend = mean_sleep),
+               colour = "grey") +
+  geom_hline(yintercept = mean(msleep$sleep_total),
+             colour = "grey",
+             linewidth = 1) +
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(
+    title = "Average Sleep Time of Mammals by Order",
+    x = "",
+    y = "Hours")
+  
+```
+

@@ -1,0 +1,118 @@
+---
+title: "Advanced ggplot - Part 3"
+author: "Jason Pemberton"
+format: html
+editor: visual
+---
+
+## Lollipop Visual
+
+```{r}
+#| label: Load Libraries
+#| message: false
+#| warning: false
+#| include: false
+library(tidyverse)
+library(forcats)
+```
+
+```{r}
+#| label: Lollipop Visual
+#| echo: true
+#| message: false
+#| warning: false
+# prepare data
+msleep %>% 
+  group_by(order) %>% 
+  summarise(mean_sleep = mean(sleep_total)) %>% 
+  mutate(order = fct_reorder(order, mean_sleep)) %>% 
+
+# specify where your data will go, which axis 
+  ggplot(aes(order, mean_sleep)) +
+  
+  labs(
+    title = "Sleep Time of Mammals",
+    x = "",
+    y = "Hours") +
+  theme(axis.text.x =
+          element_text(angle = 45,
+                       vjust = 1,
+                       hjust = 1),
+        axis.title.y = element_text(face = "bold"),
+        plot.title = element_text(hjust = 0.5,
+                                  size = 25,
+                                  face = "bold")) +
+# Adjust all element colours  
+  theme(
+    axis.text.x = element_text(color = "lightblue"),
+    axis.text.y = element_text(color = "lightblue"),
+    axis.title.y = element_text(color = "lightblue"),
+    plot.title = element_text(color = "lightblue"),
+    axis.line = element_line(color = "lightblue"),
+    axis.ticks = element_line(color = "lightblue"),
+    panel.background = element_rect(fill = "black"),
+    plot.background = element_rect(fill = "black"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    legend.position = "none") +
+
+# Add a horizontal line for average sleep
+  geom_hline(yintercept = mean(msleep$sleep_total),
+             colour = "lightblue",
+             size = 1) +
+
+# Add segments from each group average sleep
+  geom_segment(aes(x = order,
+                   y = mean(msleep$sleep_total),
+                   xend = order,
+                   yend = mean_sleep),
+                   colour = "lightblue") +
+               
+               
+# add points for each group mean sleep time
+  geom_point(aes(colour = mean_sleep),
+             size = 5) +
+  scale_color_gradient(low = "hotpink",
+                       high = "yellow") +
+  
+# add annotation text
+  annotate("text",
+           x = 4,
+           y = max(msleep$sleep_total) - 4,
+           label = "Average sleep\n for all mammals",
+           colour = "#f4cccc",
+           size = 4,
+           fontface = "bold",
+           hjust = 0
+           ) +
+# add a curved arrow pointing to horizontal line
+geom_curve(aes(x = 3.7,
+               y = max(msleep$sleep_total) - 5,
+               xend = 1.5,
+               yend = mean(msleep$sleep_total)),
+           colour = "#f4cccc",
+           curvature = 0.5,
+           size = 1,
+           arrow = arrow(length = 
+                           unit(0.07, "npc"),
+                                type = "closed"))
+```
+
+```{r}
+#| message: false
+#| warning: false
+msleep %>% 
+  ggplot(aes(sleep_total, sleep_rem)) +
+  geom_point() +
+  geom_smooth() +
+  labs(
+    title = "Temp",
+    x = "total sleep"
+  ) +
+  
+```
+
+```{r}
+ggplot(msleep, aes(displ, hwy, colour = class)) +
+  geom_point()
+```

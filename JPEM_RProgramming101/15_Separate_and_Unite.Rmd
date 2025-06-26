@@ -1,0 +1,32 @@
+---
+title: "Separate and Unite"
+author: "Jason Pemberton"
+date: "2025-04-15"
+output: html_document
+---
+
+```{r Load Libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+library(gapminder)
+```
+
+---
+
+Working with gapminder data, we might want to separate "year" into decades or centuries
+```{r}
+# separate year into century and year
+gapminder1 <- gapminder %>% 
+  separate(col = year,
+           into = c("century", "year"),
+           sep = 2)
+
+  
+
+# combine century and year into date
+gapminder1 %>% 
+  unite(col = date,
+        century, year,
+        sep = "")
+
+```
+

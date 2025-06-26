@@ -1,0 +1,156 @@
+---
+title: "ggplot - geometries"
+author: "Jason Pemberton"
+date: "2025-04-19"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r Load Libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+```
+
+---
+
+```{r VIsualization 1, echo=FALSE, message=FALSE, warning=FALSE}
+mtcars %>% 
+  ggplot(aes(wt, mpg)) +
+  geom_point(size = 3,
+             colour = "steelblue",
+             alpha = 0.6) +
+  labs(
+    title = "Vehicle Weight vs Miles Per Gallon",
+    x = "Weight",
+    y = "Miles Per Gallon"
+  ) +
+  theme_bw()
+  
+```
+
+---
+
+```{r Visualization 2, echo=FALSE, message=FALSE, warning=FALSE}
+
+Orange %>% 
+  ggplot(aes(age, circumference, colour = Tree)) +
+  geom_line() +
+  labs(
+    title = "Circumference as a Function of Age",
+    x = "Age",
+    y = "Circumference") +
+  theme_bw()
+```
+
+---
+
+```{r Visualization 3, echo=FALSE, message=FALSE, warning=FALSE}
+
+mpg %>% 
+  ggplot(aes(class)) +
+  geom_bar(fill = "steelblue",
+           alpha = 0.8) +
+  labs(
+    title = "Number of Cars in Each Class",
+    x = "",
+    y = "") +
+  theme_bw()
+```
+
+---
+
+```{r Visualization 4, echo=FALSE, message=FALSE, warning=FALSE}
+
+mpg %>% 
+  ggplot(aes(cty)) +
+  geom_histogram(binwidth = 2,
+                 fill = "steelblue",
+                 alpha = 0.8) +
+  labs(
+    title = "Fuel Efficiency of Cars in the City",
+    x = "Miles Per Gallon",
+    y = "Number of Cars") +
+  theme_bw()
+```
+
+---
+
+```{r Visualization 5, echo=FALSE, message=FALSE, warning=FALSE}
+
+mpg %>% 
+  ggplot(aes(cty)) +
+  geom_density(fill = "steelblue",
+               alpha = 0.8) +
+  labs(
+    title = "Fuel Efficiency of Cars in the City",
+    x = "Miles Per Gallon",
+    y = "Probability") +
+  theme_bw()
+```
+
+---
+
+```{r Visualization 6, echo=FALSE, message=FALSE, warning=FALSE}
+
+mpg %>% 
+  filter(drv %in% c("f", "r")) %>% 
+  ggplot(aes(cty, fill = drv, colour = drv)) +
+  geom_density(alpha = 0.3) +
+  labs(
+    title = "Fuel Efficiency of Cars in the City",
+    x = "Miles Per Gallon",
+    y = "Probability",
+    fill = "Drive",
+    colour = "Drive") + # syncs the two legends into one
+  theme_bw()
+```
+
+---
+
+```{r Visualization 7, echo=FALSE, message=FALSE, warning=FALSE}
+
+mpg %>% 
+  filter(cty < 25) %>% 
+  ggplot(aes(cty, fill = drv)) +
+  geom_boxplot(alpha = 0.5) +
+  labs(
+    title = "Fuel Efficiency of Cars in the City",
+    x = "Miles Per Gallon",
+    y = "Probability",
+    fill = "Drive") +
+  theme_bw()
+```
+
+---
+
+```{r Visualization 8, echo=FALSE, message=FALSE, warning=FALSE}
+
+mpg %>%
+  ggplot(aes(x = displ)) +
+  geom_area(aes(y = hwy, fill = "Highway")) +
+  geom_area(aes(y = cty, fill = "City")) +
+  labs(
+    title = "Highway vs City Driving",
+    x = "Engine Displacement (L)",
+    y = "Miles Per Gallon",
+    fill = "") +
+  theme_bw()
+```
+
+---
+
+```{r Visualization 9, echo=FALSE, message=FALSE, warning=FALSE}
+
+faithfuld %>%
+  ggplot(aes(x = waiting,
+             y = eruptions,
+             fill = density)) +
+  geom_raster() +
+  labs(
+    title = "Old Faithful Geyser",
+    x = "Waiting Time Between Eruptions",
+    y = "Duration of Eruptions",
+    fill = "Density") +
+  theme_bw()
+```

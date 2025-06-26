@@ -1,0 +1,197 @@
+---
+title: "Missing Data"
+author: "Jason Pemberton"
+format: html
+editor: visual
+---
+
+### Handling Missing Data and Missing Values
+
+1.  Do nothing
+2.  Delete
+3.  Replace
+4.  Impute
+
+```{r}
+#| label: Load Libraries
+#| message: false
+#| warning: false
+#| include: false
+library(tidyverse)
+library(naniar)
+library(gtExtras)
+```
+
+#### Do Nothing
+
+Visualize your data with missing values included
+
+```{r}
+#| label: Visualize using gtExtra
+#| echo: true
+#| message: false
+#| warning: false
+miss_var_summary(airquality) %>% 
+  gt() %>% 
+  gt_theme_guardian() %>% 
+  tab_header(title = "Missing Variables")
+
+# plot
+gg_miss_var(airquality)
+
+# Table of observations with missing data
+airquality %>% 
+  filter(!complete.cases(.)) %>% 
+  head(10) %>% 
+  gt() %>% 
+  gt_theme_guardian() %>% 
+  tab_header(title = "Missing Data")
+
+# Distribution of missing data
+vis_miss(airquality)
+
+# The relationship to one variable
+airquality %>% 
+  mutate(
+    Missing_Ozone = factor(is.na(Ozone),
+                           levels = c("FALSE","TRUE"),
+                           labels = c("Not Missing", "Missing"))) %>% 
+      ggplot(aes(Wind, fill = Missing_Ozone)) +
+      geom_histogram(position = "stack") +
+      labs(
+        title = "Distribution of Missing Data for Wind Speed",
+        x = "Wind Speed",
+        y = "Ozone Observations",
+        fill = "Missing") +
+      theme_bw()
+
+```
+
+```{r}
+#| label: Visualize  - Relationship to Two Variables
+#| echo: true
+#| message: false
+#| warning: false
+airquality %>% 
+  mutate(
+    Missing_Ozone = factor(is.na(Ozone),
+                           levels = c("FALSE", "TRUE"),  # Keep order consistent
+                           labels = c("Not Missing", "Missing"))
+  ) %>% 
+  ggplot(aes(x = Wind, y = Temp)) +  # Wind on x-axis, Temp on y-axis
+  geom_point(aes(color = Missing_Ozone, size = Solar.R), alpha = 0.6) +  # Size based on Solar Radiation
+  facet_wrap(~ Missing_Ozone) +  # Split into two facets
+  labs(
+    title = "Missing Ozone Data vs Wind Speed vs. Temperature",
+    x = "Wind Speed",
+    y = "Temperature",
+    color = "Missing",
+    size = "Solar Radiation"
+  ) +
+  theme_bw()
+```
+
+#### Drop Missing Values
+
+```{r}
+#| label: Drop Missing Values
+#| echo: true
+#| message: false
+#| warning: false
+
+starwars %>% 
+  select(name, mass, height, hair_color) %>% 
+  head(15) %>% 
+  gt() %>% 
+  gt_theme_guardian() %>% 
+  tab_header(title = "Star Wars Characters") %>% 
+  gt_highlight_rows(rows =  is.na(mass),
+                    fill = "steelblue") %>% 
+  gt_highlight_rows(rows =  is.na(hair_color),
+                    fill = "lightpink")
+
+
+starwars %>% 
+  select(name, mass, height, hair_color) %>% 
+  drop_na(mass) %>% 
+  head(15) %>% 
+  gt() %>% 
+  gt_theme_guardian() %>% 
+  tab_header(title = "Star Wars Characters")
+```
+
+#### Change Missing Values
+
+Using ***case_when*** to change missing values
+
+```{r}
+#| label: Change Missing Values
+#| echo: true
+#| message: false
+#| warning: false
+
+# Droids hair colour is "NA", Darth Vader is "none"
+starwars %>% 
+  select(name, hair_color, species) %>% 
+  head(5) %>%
+  gt() %>% 
+  gt_theme_guardian() %>% 
+  tab_header(title = "Star Wars Characters")
+
+# Some droids hair colour is "NA", others listed as "none"
+starwars %>% 
+  select(name, hair_color, species) %>% 
+  filter(species == "Droid") %>% 
+  head(5) %>%
+  gt() %>% 
+  gt_theme_guardian() %>% 
+  tab_header(title = "Star Wars Characters")
+
+# Use case_when to change NA to none
+starwars %>% 
+  select(name, hair_color, species) %>% 
+  filter(species == "Droid") %>% 
+  mutate(hair_color = 
+           case_when(
+             is.na(hair_color) 
+             & species == "Droid" ~ "none",
+             TRUE ~ hair_color)) %>% 
+  gt() %>% 
+  gt_theme_guardian() %>% 
+  tab_header(title = "Star Wars Characters")
+```
+
+#### Imputation
+
+Using ***mutate*** to replace missing values with a calculated value. When using imputation, we should draw attention to the values we have replaced so the audience knows they are not original data.
+
+```{r}
+#| label: Impute Missing Values
+#| echo: true
+#| message: false
+#| warning: false
+
+# Locate characters with missing height
+starwars %>% 
+  select(name, height) %>% 
+  filter(is.na(height)) %>% 
+  gt() %>% 
+  gt_theme_guardian() %>% 
+  tab_header(title = "Star Wars Characters")
+
+# replace missing height with the median height of all characters, and highlight the rows you have imputed
+starwars %>% 
+  mutate(height = case_when(
+    is.na(height) ~ median(starwars$height,
+                           na.rm = TRUE),
+    TRUE ~ height)) %>% 
+  select(name, height) %>% 
+  arrange(name) %>% 
+  gt() %>% 
+  gt_theme_guardian() %>% 
+  tab_header(title = "Star Wars Characters") %>% 
+  gt_highlight_rows(rows = name %in% c("Arvel Crynyd", "BB8",
+                                       "Poe Dameron",
+                                       "Captain Phasma", "Finn", "Rey"),
+                    fill = "steelblue")
+```

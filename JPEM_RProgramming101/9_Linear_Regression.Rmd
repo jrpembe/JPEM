@@ -25,7 +25,7 @@ cars %>%
 # H1: The slope is not zero
 # Our slope is 3.93 with a p-value of 1.49e-12, we reject the null hypothesis
 
-mod <- lm(dist ~ speed, data = cars)
+mod <- lm(dist ~ speed, data = cars) # saving our model to a variable
 
 attributes(mod)
 mod$coefficients
@@ -33,11 +33,12 @@ mod$coefficients
 
 # R-Squared = 0.65. Speed explains 65% of the variation we see in stopping distance.
 
-hist(mod$residuals) # linear regression assumes the data is normally distributed and teh residuals are evenly distributed around zero
+hist(mod$residuals) # linear regression assumes the data is normally distributed and the residuals are evenly distributed around zero
 ```
 
 ---
 
+Testing Our Model on Data is Has Not Seen
 ```{r Using our Model Predict New Results}
 new_speeds <- data.frame(speed = c(10, 20, 50))
 
@@ -46,6 +47,7 @@ predict(mod, new_speeds) %>% round(1)
 
 ---
 
+Using Tidyverse Pipe Operator
 ```{r Alternate Method}
 
 cars %>% 
@@ -56,7 +58,96 @@ cars %>%
 
 ---
 
-```{r}
+Null Hypothesis (H0): There is no relationship between speed and stopping distance. Mathematically, this can be expressed as the slope of the regression line being zero.
+
+Alternative Hypothesis (H1): There is a relationship between speed and stopping distance. Mathematically, this means the slope of the regression line is not zero.
+
+```{r Visualize, echo=FALSE, message=FALSE, warning=FALSE}
+# Fit a linear model
+summary_mod <- summary(mod)
+
+# Extract values
+slope <- round(coef(mod)[2], 2)
+intercept <- round(coef(mod)[1], 2)
+p_value <- signif(summary_mod$coefficients[2, 4], 2)
+r_squared <- round(summary_mod$r.squared, 2)
+
+# Create annotation text
+annotation_text <- paste0( 
+  "y = ", slope, "x + ", intercept, "\n",
+  "p-value = ", p_value, "\n",
+  "R² = ", r_squared
+) # paste automatically inserts a separator, paste0 does not
+
+# Create scatterplot with linear model
+ggplot(cars, aes(x = speed, y = dist)) +
+  geom_point(color = "red") +  # Red points
+  geom_smooth(method = "lm", se = FALSE , formula = y ~ x, color = "blue") +  # Blue LM line
+  annotate(
+    "text", x = max(cars$speed) - 5, y = max(cars$dist) - 5, 
+    label = annotation_text, hjust = 0.25, color = "black"
+  ) +
+  labs(
+    title = "Speed vs Distance",
+    x = "Speed",
+    y = "Stopping Distance"
+  ) +
+  theme_minimal()
+```
+
+The slope of the regression line is not zero, and the p-value is well below 0.05, so we reject the null hypothesis. There is a relationship between speed and stopping distance.
+
+
+Can we predict a woman's weight given their height?
+
+H0: Slope of regression line of height vs weight is zero
+H1: slope is not zero
+```{r Women's Height vs Weight, echo=TRUE, message=FALSE, warning=FALSE}
+
+# Fit the linear model
+model_women <- lm(weight ~ height, data = women)
+summary_model <- summary(model_women)
+
+# Extract coefficients and R²
+slope <- round(coef(model_women)[2], 2)
+intercept <- round(coef(model_women)[1], 2)
+r_squared <- round(summary_model$r.squared, 3)
+
+# Create annotation text
+annotation_text <- paste0(
+  "y = ", slope, "x + ", intercept, "\n",
+  "R² = ", r_squared
+)
+
+# Plot with annotation
+women %>%
+  ggplot(aes(height, weight)) +
+  geom_point(size = 3, alpha = 0.5) +
+  geom_smooth(method = lm, se = F) +
+  theme_bw() +
+  labs(
+    title = "Women's Height vs Weight",
+    x = "Height",
+    y = "Weight"
+  ) +
+  annotate(
+    "text",
+    x = max(women$height) - 5,  # Adjust position
+    y = min(women$weight) + 5, # Adjust position
+    label = annotation_text,
+    hjust = 0,
+    size = 5,
+    color = "blue"
+  )
+
+summary(model_women)
+
+# slope is not zero, p-value is < 0.05. We reject the null hypothesis
+
+# applying the model to new data
+
+new_height <- data.frame(height = c(67, 72, 63))
+predict(model_women, new_height)
 
 ```
 

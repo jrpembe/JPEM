@@ -1,0 +1,43 @@
+---
+title: "Error Bars"
+author: "Jason Pemberton"
+date: "2025-04-14"
+output: html_document
+---
+
+```{r Load Libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+
+# Apply themes throughout the markdown file
+theme_set(theme_bw()+
+            theme(panel.grid.major = element_blank()))
+```
+
+---
+
+Effects of Vitamin C on Tooth Growth in Guinea Pigs
+```{r EDA, echo=FALSE, message=FALSE, warning=FALSE}
+View(ToothGrowth)
+```
+
+---
+
+```{r Visualize, echo=FALSE, message=FALSE, warning=FALSE}
+ToothGrowth %>%
+  filter(supp == "VC") %>%
+  mutate(dose = as.factor(dose)) %>%
+  group_by(dose) %>%
+  summarise(mean_len = mean(len),
+            sd_len = sd(len)) %>%
+  ggplot(aes(dose, mean_len)) +
+  geom_bar(stat = "identity", fill = "lightblue") +
+  geom_errorbar(aes(ymin = mean_len - sd_len,
+                    ymax = mean_len + sd_len),
+                width = 0.05) +
+  labs(
+    title = "Average Tooth Growth for VC",
+    x = "Dose",
+    y = "Average Tooth Growth"
+  )
+```
+

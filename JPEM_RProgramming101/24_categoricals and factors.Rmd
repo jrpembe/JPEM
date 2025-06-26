@@ -1,0 +1,124 @@
+---
+title: "forcats for categorical variables"
+author: "Jason Pemberton"
+date: "2025-04-22"
+output: html_document
+---
+
+```{r Load Libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+library(forcats)
+```
+
+---
+
+```{r}
+gss_cat %>% 
+  group_by(relig) %>% 
+  summarise(meantv = mean(tvhours, na.rm = T)) %>% 
+  mutate(relig = fct_reorder(relig, meantv)) %>% 
+  ggplot(aes(meantv, relig)) +
+  geom_point(size = 4, colour = "steelblue")
+```
+
+---
+
+Dealing with unused variables or categories
+```{r}
+gss_cat %>% 
+  select(race) %>% 
+  table()
+
+gss_cat %>% 
+  mutate(race = fct_drop(race)) %>% 
+  select(race) %>% 
+  table() # results will be displayed in ascending order by count
+
+# geom bar automatically eliminates missing values
+gss_cat %>%
+  select(race) %>%
+  ggplot(aes(race)) +
+  geom_bar()
+
+```
+
+---
+
+Re-levelling
+```{r}
+gss_cat %>% 
+  mutate(race = fct_drop(race)) %>% 
+  mutate(race = fct_relevel(race,
+                            c("White", "Black", "Other"))) %>% # results will be displayed in order you specify
+  select(race) %>% 
+  table()
+```
+
+---
+
+Order Levels by Frequency Count
+
+```{r}
+gss_cat %>% 
+  ggplot(aes(marital)) +
+  geom_bar(fill = "steelblue")
+
+
+# change visualization to ascending or descending order by count
+
+gss_cat %>% 
+  mutate(marital = fct_infreq(marital)) %>% 
+  #mutate(marital = fct_rev(marital)) %>% 
+  ggplot(aes(marital)) +
+  geom_bar(fill = "steelblue")
+```
+
+---
+
+Order the Levels in One Variable by the Values in Another Variable
+
+```{r}
+gss_cat %>% 
+  group_by(relig) %>% 
+  summarise(meantv = mean(tvhours, na.rm = T)) %>% 
+  mutate(relig = fct_reorder(relig, meantv)) %>% # reorder relig, by meantv
+  ggplot(aes(meantv, relig)) +
+  geom_point(size = 4, colour = "steelblue")
+```
+
+---
+
+Modifying factor levels with fct_recode
+
+```{r}
+gss_cat %>% 
+  count(partyid)
+
+gss_cat %>% 
+  mutate(partyid = fct_recode(partyid,
+                               "Republican, Strong" = "Strong republican",
+                               "Republican, Weak" = "Not str republican",
+                               "Independent, Near Republican" = "Ind,near rep",
+                               "Independent, Near Democrat" = "Ind,near dem",
+                               "Democrat, Weak" = "Not str democrat",
+                               "Democrat, Strong" = "Strong democrat",
+                               "Other" = "No answer",
+                               "Other" = "Don't know",
+                               "Other" = "Other party")) %>% 
+  count(partyid)
+```
+
+---
+
+Modifying factor levels with fct_collapse
+
+```{r}
+gss_cat %>% 
+  mutate(partyid = fct_collapse(partyid,
+                                Other = c("No answer", "Don't know", "Other party"),
+                                Republican = c("Strong republican", "Not str republican"),
+                                Democrat = c("Not str democrat", "Strong democrat"),
+                                Independent = c("Ind,near rep", "Ind,near dem", "Independent"))) %>% 
+  count(partyid)
+```
+

@@ -1,0 +1,51 @@
+---
+title: "Encircling Observations"
+author: "Jason Pemberton"
+date: "2025-04-13"
+output: html_document
+---
+
+Enclircling Observations
+```{r Load Libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+library(ggalt)
+theme_set(theme_minimal())
+```
+
+---
+
+```{r Visualize, echo=FALSE, message=FALSE, warning=FALSE}
+just_humans <- starwars %>% 
+  filter(species == "Human")
+
+starwars %>% 
+  filter(mass < 200) %>% 
+  drop_na(sex) %>% 
+  ggplot(aes(height, mass, colour = sex)) +
+  geom_point() +
+  geom_encircle(data = just_humans,
+                aes(height, mass),
+                colour = "steelblue",
+                size = 2,
+                alpha = 0.8,
+                expand = 0.1)
+```
+
+---
+
+```{r Visualize, echo=FALSE, message=FALSE, warning=FALSE}
+just_carni <- msleep %>% 
+  filter(vore == "carni")
+
+msleep %>% 
+  filter(brainwt < 0.5) %>% 
+  drop_na(vore) %>% 
+  ggplot(aes(sleep_total, brainwt, colour = vore)) +
+  geom_point() +
+  geom_encircle(data = just_carni,
+                aes(sleep_total, brainwt),
+                colour = "steelblue",
+                size = 2,
+                alpha = 0.8,
+                expand = 0.1)
+```

@@ -1,0 +1,18 @@
+---
+title: "Dimensions"
+author: "Jason Pemberton"
+date: "2025-04-16"
+output: html_document
+---
+
+```{r Load Data, echo=FALSE, message=FALSE, warning=FALSE}
+mydata <- mtcars
+```
+
+---
+
+```{r Dimensions, echo=FALSE, message=FALSE, warning=FALSE}
+# dim returns the number of rows and columns in your data
+dim(mydata)
+```
+

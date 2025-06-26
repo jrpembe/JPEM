@@ -1,0 +1,115 @@
+---
+title: "Tables with gtExtras"
+author: "Jason Pemberton"
+format: html
+editor: visual
+---
+
+## gtExtras
+
+```{r}
+#| label: Load Libraries
+#| message: false
+#| warning: false
+#| include: false
+library(tidyverse)
+library(gapminder)
+library(gtExtras)
+library(gt)
+library(RColorBrewer)
+```
+
+```{r}
+#| label: gtExtras - iris
+#| echo: true
+#| message: false
+#| warning: false
+
+# this one doesn't work
+# iris %>% gt_plt_summary()
+```
+
+Visualizing summary statistics table
+
+```{r}
+#| label: gtextras - mtcars
+#| echo: true
+#| message: false
+#| warning: false
+mtcars %>% 
+  group_by(cyl) %>% 
+  summarize(Median = round(median(mpg), 1),
+            Mean = round(mean(mpg), 1),
+            Distribution = list(mpg)) %>% 
+  gt() %>% 
+  gt_plt_dist(Distribution) %>% 
+  gt_theme_guardian() %>% 
+  tab_header(title = "Miles per Gallon Statistics")
+```
+
+Tips and Tricks
+
+```{r}
+#| label: gtextras - gapminder
+#| echo: true
+#| message: false
+#| warning: false
+
+plot <- gapminder %>% 
+  rename(Country = country) %>% 
+  filter(continent == "Europe") %>% 
+  group_by(Country) %>% 
+  summarise(`GDP pc` = round(mean(gdpPercap)),
+            `Pop size` = round(mean(pop)),
+            `Life Expectancy` = list(lifeExp)) %>% 
+  arrange(-`GDP pc`) %>% 
+  head(10) %>% 
+  gt() %>% 
+  gt_plt_dist(`Life Expectancy`) %>% 
+  tab_header(title = "GDP and Population Size - Europe") %>% 
+  cols_align(align = "left")
+  
+plot
+
+plot %>% 
+  gt_theme_538()
+
+plot %>% 
+  gt_theme_dark()
+
+plot %>% 
+  gt_theme_espn()
+
+plot %>% 
+  gt_theme_guardian()
+
+plot %>% 
+  gt_theme_pff()
+
+plot <- plot %>% 
+  gt_theme_pff()
+
+plot %>% 
+  gt_highlight_rows(rows = Country %in% c("Iceland",
+                                          "Belgium"),
+                    fill = "lightpink")
+
+p <- plot %>%
+  gt_plt_bar_pct(`GDP pc`,
+                  fill = "steelblue",
+                 height = 15,
+                 width = 100)
+
+p
+
+d <- plot %>% 
+  gt_theme_pff() %>% 
+  gt_color_rows(column = `Pop size`,
+                palette = "Pastel1") %>% 
+  gt_plt_bar_pct(`GDP pc`,
+                 fill = "steelblue",
+                 height = 15,
+                 width = 100)
+
+d
+```

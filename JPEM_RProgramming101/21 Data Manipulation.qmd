@@ -1,0 +1,423 @@
+---
+title: "Manipulate Data"
+author: "Jason Pemberton"
+format: html
+code-fold: true
+editor: visual
+toc: true
+toc-location: left
+theme: cyborg
+---
+
+```{r}
+#| label: Load Libraries
+#| message: false
+#| warning: false
+#| include: false
+library(tidyverse)
+library(gapminder)
+library(gtExtras)
+library(gt)
+library(RColorBrewer)
+```
+
+## 1 dplyr
+
+::: panel-tabset
+## select
+
+```{r}
+starwars %>% 
+  select(name, species, contains("color")) %>% 
+  head(10)
+```
+
+## filter
+
+```{r}
+starwars %>% 
+  select(name, height, species, eye_color) %>% 
+  filter(species == "Human" &
+           height < 200 &
+           eye_color %in% c("blue", "brown")) %>% 
+  head(10)
+```
+
+## mutate
+
+```{r}
+starwars %>% 
+  select(name, height, mass, species) %>%
+  mutate(height = height/100) %>% 
+  head(10)
+```
+
+## arrange
+
+```{r}
+msleep %>% 
+  select(genus, order, sleep_total) %>% 
+  arrange(sleep_total) %>% 
+  head(10)
+```
+
+## recode
+
+```{r}
+starwars %>% 
+  select(name, contains("color"), species) %>% 
+  mutate(species = recode(species, "Droid" = "Robot")) %>% 
+  head(10)
+```
+
+## summarise
+
+```{r}
+starwars %>% 
+  select(sex, height, mass) %>% 
+  filter(sex == "male" | sex == "female") %>% 
+  mutate(height = height/100) %>% 
+  drop_na() %>% 
+  group_by(sex) %>% 
+  summarise(`Average Height` = (mean(height)),
+            `Average Mass` = (mean(mass)))
+```
+:::
+
+## 2 ggplot2
+
+::: panel-tabset
+```{r}
+#| message: false
+#| warning: false
+library(palmerpenguins)
+```
+
+## Scatterplot
+
+```{r}
+#| message: false
+#| warning: false
+penguins %>% 
+  select(flipper_length_mm, body_mass_g, species) %>% 
+  ggplot(aes(flipper_length_mm,
+             body_mass_g,
+             color = species)) +
+  geom_point(size = 3,
+             alpha = 0.5) +
+  labs(
+    title = "Flipper Lingth vs Body Mass by Species",
+    x = "Flipper Length (mm)",
+    y = "Body Mass (g)"
+  ) +
+  theme_minimal()
+```
+
+## Boxplot
+
+```{r}
+#| message: false
+#| warning: false
+penguins %>% 
+  select(bill_length_mm, species) %>% 
+  ggplot(aes(
+    bill_length_mm,
+    species,
+    fill = species)) +
+  geom_boxplot()+
+  coord_flip()+
+  labs(
+    title = "Bill Length Distribution by Species",
+    x = "Species",
+    y = "Bill Length (mm)"
+  ) +
+  theme_minimal()
+```
+
+## Barplot
+
+```{r}
+#| message: false
+#| warning: false
+penguins %>% 
+  ggplot(aes(species,
+             body_mass_g,
+             fill = species)) +
+  geom_bar(stat = "summary",
+           fun = "mean",
+           alpha = 0.5) +
+  labs(
+    title = "Average Body Mass of Penguin Species",
+    x = "Species",
+    y = "Average Body Mass (g)"
+  ) +
+  theme_minimal()
+```
+
+## Lollipop Plot
+
+```{r}
+# Calculate overall mean weight for all chickens
+global_mean <- mean(chickwts$weight)
+
+# Summarize data to get median weight per feed type
+chickwts_summary <- chickwts %>%
+  group_by(feed) %>%
+  summarize(median_weight = median(weight)) %>%
+  arrange(median_weight)  # Sort by median for better visualization
+
+# Convert feed to factor for correct ordering in plot
+chickwts$feed <- factor(chickwts$feed, levels = chickwts_summary$feed)
+
+ggplot(chickwts, aes(x = weight, y = feed, color = feed)) +
+  geom_vline(xintercept = global_mean, color = "black", linewidth = 1, linetype = "dashed") + # Vertical line at global mean
+  geom_point(alpha = 0.6, size = 2, position = position_jitter(width = 0, height = 0.2)) + # Jitter points for clarity
+  geom_segment(data = chickwts_summary, aes(x = global_mean, xend = median_weight, y = feed, yend = feed, color = feed), 
+               linewidth = 1) + # Lollipop sticks start at same global mean
+  geom_point(data = chickwts_summary, aes(x = median_weight, y = feed, color = feed), size = 4) + # Lollipop candy at median weight
+  theme_minimal() +
+  labs(title = "Chicken Weight by Feed Type (Global Mean to Median Lollipop Plot)",
+       x = "Weight (grams)",
+       y = "Feed Type")
+
+```
+
+## Ridge Plot
+
+```{r}
+#| message: false
+#| warning: false
+library(ggridges)
+ggplot(lincoln_weather, aes(x = `Mean Temperature [F]`, y = Month, fill = stat(x))) +
+  geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01) +
+  scale_fill_viridis_c(name = "Temp. [F]", option = "C") +
+  labs(title = 'Temperatures in Lincoln NE in 2016')
+```
+:::
+
+## 3 forcats
+
+::: panel-tabset
+## Original Data
+
+```{r}
+gss_cat %>% 
+  count(marital)
+```
+
+## fct_relevel()
+
+```{r}
+gss_cat %>% 
+  mutate(marital = fct_relevel(marital,
+                               "Never Married",
+                               "Married",
+                               "Separated",
+                               "Divorced",
+                               "No Answer")) %>% 
+  count(marital)
+```
+
+## fct_infreq()
+
+```{r}
+gss_cat %>% 
+  mutate(marital = fct_infreq(marital)) %>% 
+  count(marital)
+```
+
+## fct_rev()
+
+```{r}
+gss_cat %>% 
+  mutate(marital = fct_infreq(marital)) %>% 
+  mutate(marital = fct_rev(marital)) %>%
+  count(marital)
+```
+
+## fct_reorder()
+
+```{r}
+gss_cat %>% 
+  group_by(relig) %>% 
+  summarise(meantv = mean(tvhours, na.rm = T)) %>% 
+  mutate(relig = fct_reorder(relig, meantv)) %>% 
+  ggplot(aes(meantv, relig)) +
+  geom_point(size = 4,
+             color = "steelblue") +
+  theme_minimal() +
+  labs(
+    title = "Average TV Viewing Time by Religion",
+    x = "Average TV Viewing Time",
+    y = ""
+  )
+```
+:::
+
+## 4 stringr
+
+::: panel-tabset
+## str_c()
+
+```{r}
+iris %>% 
+  select(Species, Sepal.Length) %>% 
+  mutate(Description = 
+           str_c(Species,
+                 ": ",
+                 Sepal.Length,
+                 " cm")) %>% 
+  head(10)
+```
+
+## str_detect()
+
+```{r}
+mtcars %>% 
+  rownames_to_column(var = "model") %>% 
+  mutate(has_M = str_detect(model, "M")) %>% 
+  filter(has_M == TRUE) %>% 
+  select(model, mpg, cyl, disp) %>% 
+  head(10)
+```
+
+## str_sub()
+
+```{r}
+mtcars %>% 
+  rownames_to_column(var = "model") %>% 
+  mutate('short_name' = 
+           str_sub(model, 1, 3)) %>%
+  select(model, 'short_name', mpg, cyl, disp) %>% 
+  head(10)
+```
+
+## str_to_upper()
+
+```{r}
+starwars %>% 
+  select(name, species) %>% 
+  mutate(species = str_to_upper(species)) %>%
+  head(10)
+```
+:::
+
+## 5 gtExtras
+
+::: panel-tabset
+## Basic Summary Table
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+mtcars %>% 
+  group_by(cyl) %>% 
+  summarize(Median = round(median(mpg), 1),
+            Mean = round(mean(mpg), 1),
+            Distribution = list(mpg)) %>% 
+  gt() %>% 
+  gt_plt_dist(Distribution) %>% 
+  gt_theme_guardian() %>% 
+  tab_header(title = "Miles per Gallon Statistics")
+```
+
+## Custom Title and Theme
+
+```{r}
+#| message: false
+#| warning: false
+table <- mpg %>%
+  head(10) %>%
+  gt() %>%
+  tab_header(title = "Fuel Efficiency Data") %>%
+  gt_theme_538()  # try gt_theme_bbc() or gt_theme_guardian()
+
+table
+```
+
+## Adding a Bar Plot
+
+```{r}
+#| message: false
+#| warning: false
+table2 <- starwars %>%
+  select(name, height, mass) %>%
+  filter(mass < 200) %>% 
+  arrange(desc(mass)) %>% 
+  head(10) %>%
+  gt() %>%
+  gt_plt_bar(column = mass)  # Works in `{gtExtras}`
+
+table2
+```
+
+## Conditional Formatting Rows
+
+```{r}
+#| message: false
+#| warning: false
+table3 <- msleep %>%
+  select(name, sleep_total, vore) %>%
+  arrange(desc(sleep_total)) %>%  # Sorting in descending order
+  head(10) %>%
+  gt() %>%
+  gt_color_rows("sleep_total", palette = "Blues")
+
+table3
+```
+
+## Highlight Rows
+
+```{r}
+#| message: false
+#| warning: false
+table4 <- starwars %>%
+  select(name, species, homeworld, mass) %>%
+  head(15) %>%
+  gt() %>%
+  tab_style(
+    style = list(
+      cell_fill(color = "lightcoral")  # Light red background
+    ),
+    locations = cells_body(
+      rows = species == "Droid"  # Highlight rows where species is "Droid"
+    )
+  )
+
+table4
+
+```
+
+## Everything!
+
+```{r}
+#| message: false
+#| warning: false
+plot <- gapminder %>% 
+  rename(Country = country) %>% 
+  filter(continent == "Europe") %>% 
+  group_by(Country) %>% 
+  summarise(`GDP pc` = round(mean(gdpPercap)),
+            `Pop size` = round(mean(pop)),
+            `Life Expectancy` = list(lifeExp)) %>% 
+  arrange(-`GDP pc`) %>% 
+  head(10) %>% 
+  gt() %>% 
+  gt_plt_dist(`Life Expectancy`) %>% 
+  tab_header(title = "GDP and Population Size - Europe") %>% 
+  cols_align(align = "left")
+
+
+table5 <- plot %>% 
+  gt_theme_pff() %>% 
+  gt_color_rows(column = `Pop size`,
+                palette = "Pastel1") %>% 
+  gt_plt_bar_pct(`GDP pc`,
+                 fill = "steelblue",
+                 height = 15,
+                 width = 100)
+
+table5
+```
+:::

@@ -1,0 +1,146 @@
+---
+title: "Multiple Regression - Part 3"
+author: "Jason Pemberton"
+format: html
+editor: visual
+---
+
+
+
+## Multiple Regression - Selecting Variables
+
+
+
+```{r}
+#| label: Load Libraries
+#| message: false
+#| warning: false
+#| include: false
+library(tidyverse)
+library(MASS)
+library(AICcmodavg)
+```
+
+
+
+The **Swiss dataset** in R contains **fertility and socioeconomic indicators** from **1888** for **47 French-speaking provinces of Switzerland**. This data is often used for regression analysis to explore the relationship between socioeconomic factors and fertility rates.
+
+-   **Fertility**: Standardized fertility measure.
+
+-   **Agriculture**: Percentage of males working in agriculture.
+
+-   **Examination**: Percentage of draftees receiving highest mark on army examination.
+
+-   **Education**: Percentage of education beyond primary school.
+
+-   **Catholic**: Percentage of Catholic individuals.
+
+-   **Infant Mortality**: Number of infant deaths per 1000 live births.
+
+
+
+```{r}
+# data(package = "MASS")
+
+lm(Fertility ~ ., data = swiss) %>% 
+  step(direction = "backward", trace = 0) %>% 
+  summary()
+```
+
+
+
+### Highway Fuel Efficiency
+
+Lets start with a simple linear regression model that tests whether vehicle engine size affects fuel efficiency. If there was no relationship (H0, Null Hypothesis), then the slope of the regression line would be zero. It is not zero. In fact for every unit increase in engine size (displ) fuel efficiency drops by -3.5306. Our p-value is well before the threshold of 0.05, so we reject the null hypothesis. Our R-Squared value is 0.587, which means engine size can explain 58.7% of the variation we see in fuel efficiency.
+
+
+
+```{r}
+#| label: Single Variable Regression
+#| echo: true
+#| message: false
+#| warning: false
+mpg %>% 
+  ggplot(aes(displ, hwy)) +
+  geom_point() +
+  geom_smooth(method = lm, se = F) +
+  labs(
+    title = "Highway Fuel Efficiency",
+    x = "Engine Size",
+    y = "Highway Fuel Efficiency (mpg)"
+  ) +
+  theme_bw()
+
+model1 <- lm(hwy ~ displ, data = mpg) 
+summary(model1)
+```
+
+
+
+### Adding variables
+
+Now lets add an additional variable (drv) to see what the relationship looks like.
+
+Adjusted R-Squared is now 0.732, which means by adding drv to our model ,we have increased the performance to 73.2%. Engine Size + Drive together explain 73.2% of the variation we see in fuel efficiency.
+
+
+
+```{r}
+#| label: Visualize MPG Multiple Linear Regression
+#| echo: true
+#| message: false
+#| warning: false
+
+model2 <- lm(hwy ~ displ + drv, data = mpg)
+summary(model2)
+
+mpg %>% 
+  mutate(drv = fct_recode(drv, "2" = "f", "2" = "r")) %>% 
+  ggplot(aes(displ, hwy, colour = drv)) +
+  geom_point() +
+  geom_smooth(method = lm, se = F) +
+  theme_bw() +
+  labs(
+    title = "Highway Fuel Ecfficiency Explained by Engine Size",
+    x = "Engine Size",
+    y = "Highway Fuel Efficiency",
+    colour = "Drive"
+  )
+
+# Create linear model
+mpg %>%
+  mutate(drv = fct_recode(drv, "2" = "f", "2" = "r")) %>% 
+  lm(hwy ~ displ + drv, data = .) %>% 
+  summary()
+
+# the model coefficient for drive shows "drv2". R automatically # makes one of the categories (fwd or rwd) the reference for the # other. If you keep all other variables constant, moving from a # 4wd to a 2wd will improve engine efficiency by 4.9486
+
+# By default it is choosing them in alphabetical order but you 
+# can control that
+
+# 73% of the change in highway fuel efficiency can be explained by engine size and drive type
+```
+
+
+
+AKAIKE
+
+
+
+```{r}
+# Fit multiple models
+model1 <- lm(hwy ~ displ + cyl + drv, data = mpg)
+model2 <- lm(hwy ~ displ + cyl, data = mpg)
+model3 <- lm(hwy ~ displ, data = mpg)
+
+# Compare AIC values
+AIC(model1, model2, model3)
+
+# Define models
+models <- list(model1, model2, model3)
+mod.names <- c("displ.cyl.drv", "displ.cyl", "displ")
+
+# Compute AIC table
+aictab(cand.set = models, modnames = mod.names)
+```
+

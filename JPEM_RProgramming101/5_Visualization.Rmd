@@ -8,6 +8,7 @@ output: html_document
 ```{r Load Libraries, message=FALSE, warning=FALSE, include=FALSE}
 library(tidyverse)
 library(ggridges)
+library(gapminder)
 ```
 
 ---

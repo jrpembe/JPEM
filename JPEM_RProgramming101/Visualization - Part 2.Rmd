@@ -8,59 +8,105 @@ editor_options:
     wrap: 72
 ---
 
-**VISUALIZATION:**  
-How ggplot works
-
 ```{r Load Libraries, include=FALSE}
 library(tidyverse)
 ```
 
-**GGPLOT Components**  
+**GGPLOT Components**
 
--   data - what data we will be using?  
+-   **data** - Every ggplot visual starts with a dataset. This section
+    can also contain many layers of data wrangling including select,
+    filter, and mutate.
 
--   mapping (aesthetics) - what variables will be on each axis?  
+-   **mapping (aesthetics)** - This defines how variables in the dataset
+    correspond to visual properties like:
 
--   geometric representation - what type of plot will we be making?  
+    -   **Position (x and y)** → Placing data points on the plot.
 
--   statistics  
+    -   **Color** → Distinguishing groups via color encoding.
 
--   facet  
+    -   **Size** → Changing point sizes to reflect a variable.
 
--   coordinate space  
+    -   **Shape** → Assigning different shapes to categorical variables
 
--   labels  
+-   **geometric layers** - Geoms are the actual plot elements that
+    represent the data. Common geoms include:
 
--   theme  
+    -   `geom_point()` → Scatterplot.
 
-```{r R built-in datasets, echo=FALSE}
-# What datasets are built in to R?
-data()
+    -   `geom_line()` → Line graph.
+
+    -   `geom_bar()` → Bar chart.
+
+    -   `geom_boxplot()` → Boxplot.
+
+-   **statistics** - Statistics add computed elements to a plot:
+
+    -   `stat_smooth()` → Adds regression lines or trend curves.
+
+    -   `stat_summary()` → Displays summary statistics.
+
+-   **facet** - Faceting splits a plot into multiple subplots based on a
+    categorical variable:
+
+    -   `facet_wrap(~var)` → Creates separate plots for each category.
+
+    -   `facet_grid(rows ~ cols)` → Organizes subplots in a grid layout.
+
+-   **coordinate space** -`coord_flip()` → Flips x and y axes.
+
+-   **labels** - control titles, axis and legend labels.
+
+-   **theme** - Themes control non-data elements like text, background,
+    and gridlines:
+
+    -   `theme_minimal()` → Clean layout.
+
+    -   `theme_classic()` → Simple classic theme.
+
+    -   `theme_dark()` → Dark background.
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
 ```
 
-___
+------------------------------------------------------------------------
 
+### DATA
+
+Data is the first element of any ggplot visualization. The ggplot
+function assumes that your data is the first element, followed by the
+variable to go on the x-axis, then the y-axis:
+
+ggplot(data, x-variable, y-variable)
+
+You can label your items if you wish or keep it simple. The following
+code produces the same result:
 
 ```{r Biochemical Oxygen Demand Dataset, echo=FALSE, message=FALSE, warning=FALSE}
-# BOD
 
 ggplot(data = BOD,
-       mapping = aes(x = Time, y = demand)) +
+       mapping = aes(x = Time, y= demand)) +
   geom_point(size=3, colour = "red") +
   geom_line(color="blue")
-
-
-# ggplot assumes the data is the first argument, aesthetics is second, and your first variable is x, the second is y. 
+ 
 ggplot(BOD, aes(Time, demand)) +
+  geom_point(size=3, colour = "red") +
+  geom_line(colour="blue")
+
+BOD %>%
+  ggplot(aes(Time, demand)) +
   geom_point(size=3, colour = "red") +
   geom_line(colour="blue")
 ```
 
-___
+------------------------------------------------------------------------
 
-Using the pipe operator %>%, we can pass the data to the ggplot function.  
-We no longer have to specify the source data in the ggplot() line. Think  
-of %>% as "and then..."  
+Using the pipe operator %\>%, we can pass the data to the ggplot
+function.\
+We no longer have to specify the source data in the ggplot() line.
+Think\
+of %\>% as "and then..."
 
 ```{r CO2 Dataset, echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -68,7 +114,7 @@ of %>% as "and then..."
 # head(CO2)
 
 # variables are: Plant, Type, Treatment, Concentration, Uptake
-# ?CO2
+#?CO2
 
 
 CO2 %>% 
@@ -77,12 +123,14 @@ CO2 %>%
   geom_smooth(method = lm, se = FALSE) + 
   facet_wrap(~Type) + # use a categorical variable to split the resulting plot into one plot for each category
   labs(
-    title = "Concentration of CO2"
+    title = "Concentration of CO2",
+    x = "Concentration",
+    y = "Uptake"
   ) +
-  theme_bw()
+  theme_grey()
 ```
 
-___
+------------------------------------------------------------------------
 
 ```{r Line Plots with Points, echo=FALSE}
 CO2 %>% 
@@ -92,18 +140,19 @@ CO2 %>%
              aes(size=conc, # using a continuous variable to control point size
                  colour = Plant)) + # using a categorical variable to control plant colour
   facet_wrap(~Type) +
-  coord_flip() + # rotate the visual 90'
+  #coord_flip() + # rotate the visual 90'
   theme_bw() +
   labs(
     title = "Chilled vs Non-Chilled"
   )
 ```
 
-___
+------------------------------------------------------------------------
 
 ```{r Miles Per Gallon Dataset, echo=FALSE, message=FALSE, warning=FALSE}
 
 # head(mpg)
+ 
 
 mpg %>%
   filter(cty < 25) %>% 
@@ -112,7 +161,7 @@ mpg %>%
                  size = trans),
              alpha = 0.5) + # alpha controls the point transparency (0-1)
   geom_smooth(method = lm) +
-  facet_wrap(~year, nrow = 1) +
+  #facet_wrap(~year, nrow = 1) +
   labs(
     x="Engine Size",
     y="Miles per Gallon (mpg in city)",

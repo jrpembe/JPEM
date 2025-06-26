@@ -1,0 +1,67 @@
+---
+title: "plotly"
+author: "Jason Pemberton"
+format: html
+editor: visual
+---
+
+## Plotly
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+#| label: Load Libraries
+#| message: false
+#| warning: false
+#| include: false
+library(tidyverse)
+library(plotly)
+```
+
+```{r}
+#| label: Visualize - plotly
+#| echo: true
+#| message: false
+#| warning: false
+p <- starwars %>% 
+  drop_na(height, mass, eye_color) %>% 
+  filter(mass < 250) %>% 
+  filter(eye_color %in% c("blue",
+                          "black",
+                          "brown",
+                          "pink",
+                          "red",
+                          "orange")) %>% 
+  ggplot(aes(height, mass, colour = eye_color)) +
+  geom_jitter(size = 6,
+              alpha = 0.5) +
+  scale_color_manual(values = c("blue" = "blue",
+                          "black" = "black",
+                          "brown" = "brown",
+                          "pink" = "pink",
+                          "red" = "red",
+                          "orange" = "orange")) +
+  theme_bw() +
+  theme(legend.position = c(0.05, 0.98),
+        legend.justification = c("left", "top")) +
+  labs(
+    title = "Height, Mass, and Eye Colour",
+    x = "Height",
+    y = "Mass"
+  )
+
+ggplotly(p)
+```
+
+```{r}
+#| label: plotly - 3D scatterplots and Surfaces
+#| echo: true
+#| message: false
+#| warning: false
+trees %>% 
+  plot_ly(x = ~Girth,
+          y = ~Height,
+          z = ~Volume)
+
+plot_ly(z = volcano, type = "surface")
+```

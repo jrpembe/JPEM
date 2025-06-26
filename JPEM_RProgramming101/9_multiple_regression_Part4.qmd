@@ -1,0 +1,188 @@
+---
+title: "Multiple Regression Assumptions"
+author: "Jason Pemberton"
+format: html
+editor: visual
+---
+
+## Regression Model Assumptions
+
+Checking whether your assumptions were correct
+
+```{r}
+#| label: Load Libraries
+#| echo: true
+#| message: false
+#| warning: false
+library(tidyverse)
+library(lmtest)
+library(car)
+```
+
+```{r}
+#| label: Visualize Fuel Economy
+#| echo: true
+#| message: false
+#| warning: false
+
+# Create regression model
+model <- lm(mpg ~ wt, data = mtcars)
+
+# Add predicted values to the dataset
+mtcars <- mtcars %>%
+  mutate(predicted = predict(model))
+
+# Create plot
+mtcars %>%
+  ggplot(aes(wt, mpg)) +
+  geom_point(size = 1.5) +  # Scatterplot
+  geom_smooth(method = lm, se = FALSE, size = 0.5) +  # Regression line
+  geom_segment(aes(xend = wt, yend = predicted), color = "red") +  # Residual lines
+  theme_bw() +
+  labs(
+    title = "Relationship Between Vehicle Weight and Fuel Economy",
+    x = "Weight",
+    y = "Fuel Economy(mpg)"
+  )
+```
+
+### Model Diagnostics
+
+1st assumption - there is a linear relationship between **wt** and **mpg**
+
+```{r}
+#| label: Model Diagnostics - 1st Assumption
+#| echo: true
+#| message: false
+#| warning: false
+
+# plot(model)
+
+mtcars %>%
+  ggplot(aes(wt, mpg)) +
+  geom_point(size = 1.5) +  # Scatterplot
+  geom_smooth(method = lm, se = FALSE, size = 0.5) +
+  theme_bw()
+```
+
+2nd assumption - the distribution of the residuals is normal
+
+```{r}
+#| label: Model Diagnostics - 2nd Assumption
+#| echo: true
+#| message: false
+#| warning: false
+# Extract residuals directly from the model
+residuals <- model$residuals
+
+# Histogram of residuals
+ggplot(data.frame(residuals), aes(x = residuals)) +
+  geom_histogram(binwidth = 1, fill = "blue", color = "black") +
+  labs(title = "Histogram of Residuals", x = "Residuals", y = "Frequency") +
+  theme_minimal()
+
+# Q-Q plot to check normality
+qqnorm(residuals)
+qqline(residuals, col = "red")
+```
+
+3rd assumption - the residuals are homoscedastic, the variance of the residuals is spread evenly across all of the fitted values. There is no pattern to the distribution.
+
+```{r}
+#| label: Model Diagnostics - 3rd Assumption
+#| echo: true
+#| message: false
+#| warning: false
+# Residuals vs. Fitted values plot
+ggplot(data.frame(fitted = model$fitted.values, residuals = residuals), aes(x = fitted, y = residuals)) +
+  geom_point() +
+  geom_hline(yintercept = 0, color = "red") +
+  labs(title = "Residuals vs Fitted Values", x = "Fitted Values", y = "Residuals") +
+  theme_minimal()
+```
+
+4th assumption - the residuals are independent. One residuals value isn't dependent on what the preceding residual value is.
+
+There is no way to visualize whether residuals are independent of one another.
+
+---
+
+## Testing our Assumptions
+
+### Harvey-Collier Multiplier Test
+
+Alternative method for testing linearity - Harvey-Collier Multiplier Test (requires ***lmtest*** library).
+
+H0 (null) - The relationship is linear
+
+H1 (alternative) - The relationship is non-linear
+
+```{r}
+#| label: Harvey-Collier Multiplier Test
+#| echo: true
+#| message: false
+#| warning: false
+harvtest(model)
+```
+
+Since the p-value is 0.8194, or greater than 0.05, we fail to reject the null hypothesis. There is no significant evidence to suggest non-linearity.
+
+### Shapiro-Wilk Normality Test
+
+Alternative method for testing residuals are normally distributed- Shapiro-Wilk Normality Test (requires lmtest library).
+
+H0 (null) - The residuals are normally distributed
+
+H1 (alternative) - The residuals are not normally distributed
+
+```{r}
+#| label: Shapiro-Wilk Normality Test
+#| echo: true
+#| message: false
+#| warning: false
+shapiro.test(residuals(model))
+```
+
+Since the p-value is 0.1044, or greater than 0.05, we fail to reject the null hypothesis. The residuals are normally distributed.
+
+### Studentized Breusch-Pagan Test
+
+A formal statistical method to test for homoscedasticity.
+
+H0 (null) - The residuals are homoscedastic
+
+H1 (alternative) - The residuals are not homoscedastic
+
+```{r}
+#| label: Studentized Breusch-Pagan Test
+#| echo: true
+#| message: false
+#| warning: false
+bptest(model)
+```
+
+Since the p-value is 0.8406, or greater than 0.05, we fail to reject the null hypothesis. The residuals are homoscedastic.
+
+### Durbin-Watson Test
+
+A definitive test to determine if residuals are independent (requires ***car*** library)
+
+In the case of our original **model**, we only used one independent variable. Let's create a new model with multiple independent variables then run the Durbin-Watson test.
+
+A D-W statistic close to 2 suggests there is no autocorrelation
+
+A D-W statistic \< 2 suggests there is positive autocorrelation
+
+A D-W statistic \> 2 suggests there is negative autocorrelation
+
+```{r}
+#| label: Durbin-Watson Test
+#| echo: true
+#| message: false
+#| warning: false
+
+model2 <- lm(hwy ~ displ + drv, data = mpg)
+durbinWatsonTest(model2)
+```
+
+Our D-W Test results in D-W Statistic value of 1.28, suggesting that **displ** and **drv** are positively auto-correlated.

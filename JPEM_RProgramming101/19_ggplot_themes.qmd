@@ -1,0 +1,176 @@
+---
+title: "Themes in ggplot"
+author: "Jason Pemberton"
+format: html
+editor: visual
+---
+
+## ggplot - themes
+
+```{r}
+#| label: Load Libraries
+#| message: false
+#| warning: false
+#| include: false
+library(tidyverse)
+```
+
+## mtcars data
+
+### Basic Theme
+
+```{r}
+#| label: Basic Visual with ggplot
+#| echo: true
+#| message: false
+#| warning: false
+p <- ggplot(mtcars, aes(wt, mpg)) +
+  geom_point() +
+  ggtitle("Vehicle Weight vs MPG") +
+  xlab("Weight (1000lbs)") +
+  ylab("Miles Per Gallon")
+
+p
+```
+
+### Black & White Theme
+
+```{r}
+#| label: Black & White Theme - ggplot
+#| echo: true
+#| message: false
+#| warning: false
+p +
+  ggtitle("Vehicle Weight vs MPG with bw theme") + 
+  theme_bw()
+```
+
+### Classic Theme
+
+```{r}
+#| label: Classic Theme - ggplot
+#| echo: true
+#| message: false
+#| warning: false
+p +
+  ggtitle("Vehicle Weight vs MPG with classic") + 
+  theme_classic()
+```
+
+### Minimal Theme
+
+```{r}
+#| label: Minimal Theme - ggplot
+#| echo: true
+#| message: false
+#| warning: false
+p +
+  ggtitle("Vehicle Weight vs MPG with minimal") + 
+  theme_minimal()
+```
+
+### Void Theme
+
+```{r}
+#| label: Void Theme - ggplot
+#| echo: true
+#| message: false
+#| warning: false
+p +
+  ggtitle("Vehicle Weight vs MPG with void") + 
+  theme_void()
+```
+
+## Customizing Themes
+
+Titles, axes, ticks, panel and plot backgrounds
+
+### Titles
+
+```{r}
+#| label: Custom Themes - Titles
+#| echo: true
+#| message: false
+#| warning: false
+p + theme(plot.title = 
+            element_text(colour = "steelblue",
+                         family = "Comic Sans Ms",
+                         face = "bold",
+                         hjust = 0.5,
+                         size = rel(2))) # 2X as big as other text
+```
+
+### Axes
+
+```{r}
+#| label: Custom Themes - Axes
+#| echo: true
+#| message: false
+#| warning: false
+p + theme(axis.title.x = 
+            element_text(face = "bold.italic",
+                         color = "darkred",
+                         size = 16),
+          axis.title.y = 
+            element_text(face = "bold.italic",
+                         color = "darkblue",
+                         size = 16))
+```
+
+### Lines
+
+```{r}
+#| label: Custom Themes - Lines
+#| echo: true
+#| message: false
+#| warning: false
+p + theme(axis.line.x = 
+            element_line(size = 2,
+                         color = "steelblue",
+                         linetype = "dotted"),
+          axis.line.y = 
+            element_line(size = 3,
+                         color = "salmon",
+                         lineend = "round"))
+```
+
+### Ticks
+
+```{r}
+#| label: Custom Themes - Ticks
+#| echo: true
+#| message: false
+#| warning: false
+p + theme(axis.ticks = 
+            element_line(size = 3,
+                         colour = "hotpink"))
+
+p + 
+  theme(plot.background = # or panel.background
+          element_rect(fill = "lightblue",
+                       colour = "white",
+                       size = 4))
+```
+
+## Star Wars data
+
+```{r}
+#| label: Custom Themes - Axis Text
+#| echo: true
+#| message: false
+#| warning: false
+starwars %>% 
+  filter(!is.na(homeworld), mass < 200) %>% 
+  ggplot(aes(homeworld, mass, fill = homeworld)) +
+  geom_boxplot() +
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "none") +
+  labs(
+    title = ("Mass Distribution by Homeworld"),
+    x = "",
+    y = "Mass"
+  )
+  
+```

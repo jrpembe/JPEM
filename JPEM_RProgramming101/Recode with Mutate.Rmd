@@ -33,4 +33,3 @@ sw <- data %>%
          size = if_else(size == TRUE, "big", "small"))
 
 ```
-

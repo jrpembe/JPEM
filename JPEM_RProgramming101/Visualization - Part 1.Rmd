@@ -11,7 +11,7 @@ Creating a basic scatter plot from two continuous variables.
 
 **Step 1:** Load necessary libraries\
 - tidyverse: a collection of R packages that help with data science tasks like importing, tidying, manipulating, and visualizing data\
-- ggpmisc: defines stats that help annotate the plots based on the results of model fitting  
+- ggpmisc: defines stats that help annotate the plots based on the results of model fitting
 
 ```{r Load Libraries, include=FALSE}
 library(tidyverse)
@@ -38,6 +38,7 @@ summary(df)
 ```{r Base R Visualization, echo=FALSE, message=FALSE, warning=FALSE}
 # Base R scatter plot
 plot(df$area, df$price)
+hist(df$price)
 ```
 
 ------------------------------------------------------------------------
@@ -57,4 +58,13 @@ ggplot(df, aes(x = area, y = price)) +
        y = "Price ($)") +
   theme_minimal()
 
+df %>% 
+  ggplot(aes(area, price)) +
+  geom_point() +
+  geom_smooth(method=lm, se=F) +
+  labs(
+    title = "House Size vs Price",
+    x = "",
+    y = "Price (USD)"
+  )
 ```

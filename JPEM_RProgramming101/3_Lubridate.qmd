@@ -1,0 +1,180 @@
+---
+title: "Lubridate"
+author: "Jason Pemberton"
+format: html
+editor: visual
+---
+
+## Lubridate
+
+Lubridate allows you to work with time and date data much easier than base R
+
+```{r}
+#| label: Load Libraries
+#| message: false
+#| warning: false
+#| include: false
+library(tidyverse)
+# library(lubridate) # included in latest version of tidyverse
+library(nycflights13)
+```
+
+In this presentation we will:
+
+1.  Create date-time objects
+
+2.  Extract date-time objects
+
+3.  Filter date-time objects
+
+4.  Work with time spans, duration, periods and intervals
+
+5.  Visualize date-time objects with ggplot2
+
+## Create date-time objects
+
+```{r}
+now()
+today()
+```
+
+```{r}
+#| label: View NYC Flights Data
+#| echo: true
+#| message: false
+#| warning: false
+
+flights %>% 
+  select(origin, year, month, day, hour, minute) %>% 
+  head(4)
+```
+
+```{r}
+#| label: 1. Create Date Time Object
+#| echo: true
+#| message: false
+#| warning: false
+# year, month and day are all stored seperately. We will use Lubridate to combine them into a single date object
+
+flights %>% 
+  mutate(flight_date = ymd_hm(paste(year, month, day, hour, minute))) %>% 
+  select(origin, dest, flight_date) %>% 
+  head(4)
+```
+
+## Extract date-time objects
+
+```{r}
+#| label: 2. Extract Date Time Objects
+#| echo: true
+#| message: false
+#| warning: false
+# creating weekday and month_name using wday and month
+flights %>% 
+  mutate(flight_date = make_date(year, month, day)) %>% 
+  mutate(weekday = wday(flight_date, label = T),
+         month_name = month(flight_date, label = T)) %>% 
+  select(origin, flight_date, weekday, month_name) %>% 
+  head(4)
+```
+
+## Filter date-time objects
+
+```{r}
+#| label: 3. Filtering Date Time Objects
+#| echo: true
+#| message: false
+#| warning: false
+# Filtering for a specific month
+flights %>% 
+  filter(time_hour >= ymd("2013-09-01") &
+           time_hour < ymd("2013-10-01")) %>% 
+  select(origin, month) %>% 
+  head(4)
+```
+
+## Time Spans - Duration, Periods, Intervals
+
+Duration: Exact number of seconds
+
+Period: units of time like weeks and months
+
+Interval: A time span defined by start and end point
+
+```{r}
+#| label: 4. Time Spans - Duration, Periods, Intervals
+#| echo: true
+#| message: false
+#| warning: false
+
+# Duration
+my_duration <- dseconds(15)
+print(my_duration)
+
+dminutes(3)
+
+dhours(2)
+
+ymd("2024-01-01") + dyears(1) # adds seconds, doesn't account for leap year
+
+ymd("2024-01-01") + years(1)
+
+
+# Periods
+months(3) + days(1) + minutes(5)
+
+months(2) * 2
+
+# Intervals
+start <- ymd_hms("2021-01-01 12:00:00")
+end <- ymd_hms("2021-09-25 12:00:00")
+
+intv <- interval(start, end)
+print(intv)
+
+# Using Intervals to determine if a specific date falls inside
+
+ymd_hms("2021-08-27 12:00:00") %within% intv
+
+start2 <- ymd_hms("2021-01-02 12:00:00")
+end2 <- ymd_hms("2022-02-25 12:00:00")
+intv2 <- interval(start2, end2)
+
+intv < intv2
+```
+
+## Converting Types - Duration, Periods, Intervals
+
+```{r}
+#| label: Converting Types
+#| echo: true
+#| message: false
+#| warning: false
+
+as.duration(intv2)
+```
+
+## Visualize with ggplot2
+
+```{r}
+#| label: 5. Visualize
+#| echo: true
+#| message: false
+#| warning: false
+
+# Recall that Lubridate is part of Tidyverse
+
+flights %>% 
+  filter(carrier %in% c("9E", "US", "AA", "MQ")) %>% 
+  mutate(week_day = wday(time_hour, label = T)) %>% 
+  ggplot(aes(week_day)) +
+  geom_bar(fill = "steelblue", alpha = 0.8) +
+  facet_wrap(~carrier) +
+  theme_bw() +
+  labs(
+    title = "Number of Flights by Carrier and Weekday",
+    x = "Week Days",
+    y = ""
+  ) +
+  theme(plot.title = element_text(hjust = 0.5))
+```

@@ -1,0 +1,78 @@
+---
+title: "Conditional Statements"
+author: "Jason Pemberton"
+format: html
+editor: visual
+---
+
+```{r}
+#| label: Load Libraries
+#| message: false
+#| warning: false
+#| include: false
+library(tidyverse)
+library(gtExtras)
+```
+
+case_when()
+
+if_else()
+
+```{r}
+#| label: Visualize - if_else()
+#| echo: true
+#| message: false
+#| warning: false
+starwars %>% 
+  select(name, hair_color, species) %>% 
+  head(10) %>% 
+  # add table formatting
+  gt() %>% 
+  gt_theme_guardian() %>% 
+  tab_header(title = "Star Wars Characters") %>% 
+  gt_highlight_rows(rows = species == "Droid",
+                    fill = "steelblue") %>% 
+  gt_highlight_rows(rows = hair_color == "brown",
+                    fill = "brown")
+  
+
+# highlighting table itesm and changing display values
+starwars %>% 
+  select(name, hair_color, species) %>% 
+  mutate(hair_color = if_else(
+    is.na(hair_color) &
+    species == "Droid",
+    "no hair",
+    hair_color)) %>% 
+  # add table themes
+  gt() %>% 
+  gt_theme_guardian() %>% 
+  tab_header(title = "Star Wars Characters") %>% 
+  gt_highlight_rows(rows = species == "Droid",
+                    fill = "steelblue")
+```
+
+```{r}
+#| label: Visualize - case_when()
+#| echo: true
+#| message: false
+#| warning: false
+
+starwars %>% 
+  select(name, hair_color, species) %>% 
+  mutate(hair_color = case_when(
+    is.na(hair_color) &
+    species == "Droid" ~ "no hair",
+    hair_color == "brown" ~ "pink",
+    TRUE ~ hair_color)) %>% 
+  head(10) %>% 
+  # add table themes
+  gt() %>% 
+  gt_theme_guardian() %>% 
+  tab_header(title = "Star Wars Characters") %>% 
+  gt_highlight_rows(rows = species == "Droid",
+                    fill = "steelblue") %>% 
+  gt_highlight_rows(rows = hair_color == "pink",
+                    fill = "pink")
+
+```
