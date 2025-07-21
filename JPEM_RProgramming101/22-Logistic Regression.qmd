@@ -19,6 +19,9 @@ library(tidyverse)
 library(plotly)
 library(gtExtras)
 library(mlbench)
+library(reshape2)
+library(RColorBrewer)
+library(broom)
 ```
 
 ## What is Logistic Regression?
@@ -159,6 +162,16 @@ plot_ly(data = glucose_range,
   )
 ```
 :::
+
+Interpreting the model results:
+
+Rather than a simple linear regression with equation y=mx+b, we are dealing with probability of an outcome, so our equation is:
+
+log(P / (1 - P)) = -5.350080 + 0.037873 × glucose
+
+Solving for Probability (p):
+
+**P = 1 / (1 + exp( - ( -5.350080 + 0.037873 × glucose ) ))**
 
 ## Creating a simple model
 
@@ -333,31 +346,327 @@ PimaIndiansDiabetes %>%
   theme_minimal()
 ```
 
+## Effect Modifiers
+
+Effect modifiers (or interacting variables) are slightly different. Let's stick with the example of glucose and age. While it is true that older people have higher glucose, it might also be true that being older (due to changes in physiology with age) modifies the effect of glucose on diabetes risk. So not only do older people have higher levels of glucose, but the glucose itself has a different effect on diabetes in older people.
+
+Let's repeat the model but this time, instead of just adding age as an additional predictor variable, let's add it as a possible interaction term (or effect modifier) and see what happens.
+
+```{r}
+effect_model <- glm(diabetes ~ glucose * age, family = binomial, data = PimaIndiansDiabetes)
+
+summary(effect_model)
+```
+
+First we notice that the interaction term is statistically significant and that the residual deviance and AIC are both reduced. All of this suggests that this interactions has improved the model and that the interaction term should be included in the model.
+
+Next we see that the interaction term has a negative value for its estimate. Meaning that with increasing age, the effect of glucose on diabetes decreases. In other words, high levels of glucose impacts young people more than older people with respect to the likelihood of a diabetes diagnosis.
+
+## Collinearity
+
+Collinearity in logistic regression happens when two or more predictor variables are highly correlated with each other. It can lead to unstable estimates, inflated standard errors, and difficulty in interpreting the unique contribution of each predictor.
+
+::: callout-important
+Collinearity makes it difficult for the models to figure out the individual impact of each variable on the outcome because they are essentially explaining the same variance.
+:::
+
+It is a good idea to create a table or use data visualization to identify pairs of variables that are highly correlated. A correlation coefficient of 0.7 or higher may mean that you need to consider the strategies described below. from @fig-corr-matrix and @fig-correlation it is clear that none of the variables are highly correlated and so further action is not required.
+
 ::: panel-tabset
-## Basic Summary Table
+### Values
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| label: fig-corr-matrix
+#| fig-cap: "Correlation Matrix"
+correlation_matrix <- cor(PimaIndiansDiabetes[ ,sapply(PimaIndiansDiabetes, is.numeric)])
+
+cor_df <- as.data.frame(round(correlation_matrix, 2)) %>% 
+  tibble::rownames_to_column("Variable")
+
+cor_df %>% 
+  gt() %>% 
+  gt_color_rows(
+    columns = -Variable,
+    palette = "RdBu",
+    domain = c(-1,1)
+  )
+```
+
+### Scale
+
+```{r}
+#| message: false
+#| warning: false
+#| label: fig-correlation
+#| fig-cap: "Correlation Plot"
+# Compute correlation matrix
+corr <- cor(PimaIndiansDiabetes[, sapply(PimaIndiansDiabetes, is.numeric)])
+
+# Melt the matrix into long format
+corr_melted <- melt(round(corr, 2))
+
+# Plot heatmap
+ggplot(corr_melted, aes(Var1, Var2, fill = value)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(
+    low = "red", high = "blue", mid = "white",
+    midpoint = 0, limit = c(-1, 1),
+    name = "Correlation"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
+  labs(x = "", y = "") +
+  coord_fixed()
+```
+:::
+
+Strategies for dealing with collinearity: Remove one of the Collinear Variables:\
+If two variables are highly correlated, consider dropping one from the model. Especially if it provides redundant information.
+
+## Building the Model
+
+```{r}
+model_glucose <- glm(formula = diabetes ~ glucose + age + glucose:age + pregnant + age:pregnant + mass + pressure + pedigree, family = binomial, data = PimaIndiansDiabetes)
+
+summary(model_glucose)
+```
+
+## Checking Model Assumptions
+
+Model assumptions can be checked visually and using statistical assumptions. these methods should be used together to get a sense of the strength of your model. We'll make reference to these plots in the text below. @fig-log-odds shows the log odds of diabetes for each predictor.
+
+### Visual Checks
+
+::: panel-tabset
+## Linearity
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+#| label: fig-log-odds
+#| fig-cap: "Log Odds"
+
+
+# Load the data and apply filters
+dataset <- PimaIndiansDiabetes %>%
+  filter(mass > 10, pressure > 10, age < 70) %>%
+  na.omit()  # remove rows with missing values
+
+# Fit the model on the filtered dataset
+model <- glm(diabetes ~ pregnant + pressure + mass + pedigree + age,
+             family = binomial, data = dataset)
+
+# Generate predictions on the SAME dataset
+log_odds <- predict(model, newdata = dataset, type = "link")
+
+# Now the dimensions will match
+dataset$log_odds <- log_odds
+
+
+long_dataset <- dataset %>% 
+  select(-diabetes, -insulin, -triceps) %>% 
+  pivot_longer(cols = -log_odds, names_to = "predictor", values_to = )
+
+long_dataset %>% 
+  ggplot(aes(x = value, y = log_odds)) +
+  geom_point(alpha = 0.2, colour = "steelblue") +
+  geom_smooth(method = "loess", colour = "coral") +
+  facet_wrap(~ predictor, scales = "free_x") +
+  labs(
+    title ="Log-Odds vs Predictors",
+    x = "",
+    y = "Log-Odds"
+  ) +
+  theme_bw()
+```
+
+## Cook's Distance
+
+Cook's Distance is a measure used to identify influential data points in a regression model. It quantifies the impact of removing an observation on the overall model fit. High Cook's Distance values indicate that the observation has a significant influence on the estimated regression coefficients. A rule of thumb is that Cook's Distance greater than 1 or significantly higher than the values of most of the observations warrants further investigation. However, interpretation depends on context and the dataset. Our goal is to look for Cook's distances that are significantly less than 1. We can see in @fig-cooks-distance that none of the distances are more than 1.
+
+```{r}
+#| label: fig-cooks-distance
+#| fig-cap: "Cook's Distance"
+# Calculate Cook's distance
+cooks_d <- cooks.distance(model)
+
+# Create a data frame with index and Cook's D
+cooks_df <- data.frame(index = 1:length(cooks_d),
+                       cooks_distance = cooks_d)
+
+
+ggplot(cooks_df, aes(x = index, y = cooks_distance)) +
+  geom_segment(aes(x = index, xend = index, y = 0, yend = cooks_distance),
+               color = "darkblue", alpha = 0.5) +
+  geom_point(color = "coral", alpha = 0.6) +
+  geom_hline(yintercept = 4 / nrow(cooks_df), linetype = "dashed", color = "gray50") +
+  labs(title = "Cook’s Distance vs Observation Index",
+       x = "Observation Index",
+       y = "Cook’s Distance") +
+  theme_minimal()
+
+```
+
+## Leverage Values
+
+Leverage values measure the influence of an observation on the predicted outcomes by evaluating how far the observation's predictor values deviate from the mean of the predictors. In the context of logistic regression, observations with high leverage have the potential to dis proportionally affect a model's fit. High leverage points may not always be problematic, but they warrant attention., particularly if they have large residuals or Cook's Distances. Identifying and assessing leverage values ensures that influential points are not unduly skewing the model, which is critical for the robustness and intractability of the results.
+
+Unlike Cook's Distance, there are some real outliers in the Leverage Values calculation. @fig-leverage-values shows some outliers that we will need to investigate.
+
+```{r}
+#| label: fig-leverage-values
+#| fig-cap: "Leverage Values"
+# Calculate leverage (hat) values
+leverage_vals <- hatvalues(model)
+
+# Create data frame for plotting
+leverage_df <- data.frame(index = 1:length(leverage_vals),
+                          leverage = leverage_vals)
+
+ggplot(leverage_df, aes(x = index, y = leverage)) +
+  geom_point(color = "blue", alpha = 0.6) +
+  geom_hline(yintercept = 2 * (length(coef(model)) / nrow(leverage_df)),
+             linetype = "dashed", color = "gray50") +
+  labs(title = "Leverage (Hat) Values vs Observation Index",
+       x = "Observation Index",
+       y = "Leverage") +
+  theme_minimal()
+```
+
+Identify specific observations with high leverage values:
+
+```{r}
+# Calculate leverage values
+leverage_values <- hatvalues(model)
+
+# Create dataframe with leverage values and observation index
+leverage_df <- data.frame(
+  Observation = seq_along(leverage_values),
+  Leverage = leverage_values
+)
+
+# Define leverage threshold
+n <- nrow(PimaIndiansDiabetes)
+p <- length(coefficients(model))
+leverage_threshold <- 2 * p / n
+
+# Identify high-leverage observations
+high_leverage_df <- leverage_df %>%
+  filter(Leverage > leverage_threshold)
+
+# Display top 5 by leverage
+high_leverage_df %>%
+  arrange(desc(Leverage)) %>%
+  head(5)
+```
+
+## Deviance Residuals
+
+Deviance Residuals measure the discrepency between observed and predicted values in logistic regression, providing a way to assess individual data point's fit within the model. They are derived from the contribution of each observation to the overall deviance, with large deviance residuals indicating observations that deviate significantly from the model's predictions. This makes them particularly relevant for identifying potential outliers or influential points that may affect a model's validity. In l;ogistic regression, where traditional residuals are not meaningful due to the binary nature of the outcome, deviance residuals are an essential diagnostic tool to test a model's assumptions of appropriate fit for individual observations.
+
+@fig-deviance-residuals shows a few observations that fall outside of the range we'd like. Because the Cook's Distance is low, we're not too concerned, but we do want to know if any of the problematic observations here are the same as those identified in @fig-cooks-distance.
+
+List those that cross the threshold of \> 2
 
 ```{r}
 #| echo: true
 #| message: false
 #| warning: false
 
-```
+# Calculate deviance residuals from your fitted model
+deviance_res <- residuals(model, type = "deviance")
 
-## Custom Title and Theme
+# Combine with observation index for clarity
+res_df <- data.frame(
+  index = seq_along(deviance_res),
+  deviance_residual = deviance_res
+)
+
+# Filter for residuals greater than 2
+large_residuals <- res_df %>%
+  filter(abs(deviance_residual) > 2)
+
+# View top results
+head(large_residuals)
+```
 
 ```{r}
-#| message: false
-#| warning: false
+#| label: fig-deviance-residuals
+#| fig-cap: "Deviance Residuals"
+# Calculate deviance residuals
+residuals_dev <- residuals(model, type = "deviance")
+
+# Create a data frame with index and residuals
+res_df <- data.frame(index = 1:length(residuals_dev),
+                     deviance_residuals = residuals_dev)
+
+# Plot using ggplot2
+library(ggplot2)
+
+ggplot(res_df, aes(x = index, y = deviance_residuals)) +
+  geom_point(color = "steelblue", alpha = 0.6) +
+  geom_hline(yintercept = c(-2,2), linetype = "dashed", color = "red") +
+  labs(title = "Deviance Residuals vs Observation Index",
+       x = "Observation Index",
+       y = "Deviance Residuals") +
+  theme_minimal()
 
 ```
-
-## Adding a Bar Plot
 :::
 
-## Effect Modifiers
+Considering the model assumptions needs to be done in the context of the study design and your subject matter knowledge of the variables and the data. Here is a list of the assumptions that you should consider (we'll take a closer look at each of them below):
 
-## Collinearity
+1.  The dependent (outcome) variable is binary
+2.  Observations are independent
+3.  Adequate sample size
+4.  No omitted variables that bias the study
+5.  Good logistic regression model fit
+6.  No perfect multicollinearity
+7.  Linear relationship between the log-odds and predictors
+8.  Absence of highly influential outliers
 
-## Building the Model
+### 1. The Dependent Variable is Binary
 
-## Checking Model Assumptions
+-   Assumption: The outcome variable must be binary (eg. "Yes" or "No")
+
+-   Check: Ensure the dependent variable has two levels
+
+    -   In R, use table(your_data\$dependent_variable) to confirm
+
+    -   In our case, the outcome is diabetes or no diabetes
+
+### 2. Observations are Independent
+
+-   Assumption: Each observation is independent of the others.
+
+This means that the outcome of one observation does not influence or is not influenced by the outcome of another.
+
+### 6. Multicollinearity
+
+Multicollinearity can make it difficult to determine the independent effect of each predictor, leading to inflated standard errors, unstable coefficient estimates, and reduced interpretability of the model. While it does not affect the predictive power of the model as a whole, it can compromise the reliability of individual coefficients, making them less useful for inference.
+
+Variance Inflation Factor (VIF) Detects Multivariate Issues:
+
+VIF assesses how much the variance of the regression coefficient is inflated due to linear dependence among predictors. It considers the combined effect of all predictors in the model, not just pairwise correlations.
+
+TO calculate VIF for your logistic regression model, you can use the car package which provides the vif() function. Note that all of the predictor variables included in the model are passed to the vif() function except the interaction terms.
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+library(car)
+
+dataset2 <- PimaIndiansDiabetes %>% 
+  na.omit()
+
+model <- glm(diabetes ~ glucose + age + pregnant + mass + pressure + pedigree, family = "binomial", data = dataset2)
+
+vif(model)
+```
+
+As a rule of thumb, a VIF higher than 10 is an indication of severe multicollinearity. A variable with VIF greater than 10 doesn't always need to be dropped. While a high VIF indicates potential multicollinearity, it is crucial to consider the context, the importance of the variable, and the specific goals of the analysis. There are techniques to address multicollinearity without immediately resorting to dropping variables.

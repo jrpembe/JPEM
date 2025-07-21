@@ -22,10 +22,11 @@ names(msleep)
 # Single Categorical Variable 
 
 msleep %>% 
-  drop_na(vore) %>%  # remove the variable reference and observe how many values are left out
+  drop_na(vore) %>%    # remove the variable reference and observe how many values are left out
   ggplot(aes(fct_infreq(vore))) +
+  ggplot(aes(vore)) +
   geom_bar(fill = "#57B35B") +
-  # coord_flip() + 
+  #coord_flip() + 
   theme_bw() +
   labs(
     x = "Type of -Vore",

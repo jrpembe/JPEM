@@ -1,0 +1,83 @@
+---
+title: "YAML"
+author: "Jason Pemberton"
+format: html
+editor: visual
+---
+
+### Basic YAML Syntax Rules
+
+---
+# Simple key-value
+title: "Basic YAML Syntax Rules"
+
+# List items using hyphens
+author:
+  - "Jason Pemberton"
+  - "John Doe"
+  
+# Nested structures
+formt:
+html: 
+  toc: true
+  number-sections: true
+---
+
+### YAML Headers - HTML Output
+
+---
+format:
+html:
+  theme: cosmo
+  css: custom-css
+  toc: true
+  toc-depth: 3
+  toc-location: "Contents"
+  code-fold: true
+  code-tools: true
+  code-copy: true
+  code-line-numbers: true
+  code-block-bg: true
+  code-block-border-left: "#31BAE9"
+  code-overflow: wrap
+  code-link: true
+  number-sections: true
+  number-depth: 3
+  fig-width: 8
+  fig-height: 5
+  fig-format: svg
+  fig-dpi: 300
+  embed-resources: true
+  page-layout: article
+  fontsize: 1.1em
+  linestretch: 1.5
+  title-block-banner: true
+  smooth-scroll: true
+  anchor-sections: true
+  search: true
+---
+
+### YAML Headers - PDF Output
+
+---
+format:
+  pdf:
+    documentclass: article
+    classoption: 
+      - twocolumn
+      - landscape
+    papersize: letter
+    geometry: 
+      - top=1in
+      - left=1in
+      - right=1in
+      - bottom=1in
+    fontsize: 11pt
+    linestretch: 1.5
+    colorlinks: true
+    lot: true # list of tables
+    lof: true # list of figures
+    highlight-style: github
+    include-in-header: header.tex
+    keep-tex: true
+---

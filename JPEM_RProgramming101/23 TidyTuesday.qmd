@@ -1,0 +1,117 @@
+---
+title: "Tidy Tuesday"
+author: "Jason Pemberton"
+format: html
+editor: visual
+---
+
+```{r}
+#| label: Load Libraries
+#| message: false
+#| warning: false
+#| include: false
+library(tidyverse)
+library(tidytuesdayR)
+```
+
+```{r}
+#| message: false
+#| warning: false
+#| include: false
+tt_available()
+tt_datasets(2021)
+```
+
+```{r}
+#| message: false
+#| warning: false
+tues_data <- tt_load("2021-10-05")
+
+#or
+
+#tues_data <- tt_load(2021, week = 41)
+
+names(tues_data)
+```
+
+```{r}
+df <- tues_data$nurses
+```
+
+------------------------------------------------------------------------
+
+### Income vs. Experience
+
+```{r}
+#| label: Visual 1
+#| echo: true
+#| message: false
+#| warning: false
+top_states <- df %>%
+  filter(Year == max(Year)) %>%
+  arrange(desc(`Annual Salary Avg`)) %>%
+  slice_head(n = 5) %>%
+  pull(State)
+
+
+ggplot(
+  df %>% filter(State %in% top_states),
+  aes(x = Year, y = `Annual Salary Avg`, color = State)
+) +
+  geom_line(size = 1.2) +
+  labs(
+    title = "Top 5 States by Nurse Salary – Trend Over Time",
+    x = "Year",
+    y = "Average Annual Salary ($)",
+    color = "State"
+  ) +
+  theme_minimal()
+```
+
+### Location Quotient Across States and Year
+
+Location Quotient = How concentrated nursing employment is in a specific region compared to the national average
+
+```{r}
+#| echo: true
+# Calculate average LQ per state
+state_order <- df %>%
+  filter(Year > 2009) %>%
+  group_by(State) %>%
+  summarise(avg_LQ = mean(`Location Quotient`, na.rm = TRUE)) %>%
+  arrange(avg_LQ)%>%
+  pull(State)
+
+# Convert State to a factor with levels ordered by avg_LQ
+df %>%
+  filter(Year > 2009) %>%
+  mutate(State = factor(State, levels = state_order)) %>%
+  ggplot(aes(x = factor(Year), y = State, fill = `Location Quotient`)) +
+  geom_tile(color = "white") +
+  scale_fill_viridis_c(option = "magma") +
+  labs(
+    title = "Location Quotient of Nurses by State and Year",
+    x = "Year",
+    y = "State",
+    fill = "Location Quotient"
+  ) +
+  theme_minimal()
+```
+
+### Average Annual Nurse Salary by State
+
+```{r}
+#| echo: true
+nurses_recent <- df %>%
+  filter(Year == max(Year))
+
+ggplot(nurses_recent, aes(x = reorder(State, `Annual Salary Avg`), y = `Annual Salary Avg`)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  labs(
+    title = "Average Annual Nurse Salary by State",
+    x = "State",
+    y = "Annual Salary ($)"
+  ) +
+  theme_minimal()
+```
